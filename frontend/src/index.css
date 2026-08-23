@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    @apply bg-gray-50 text-gray-900 font-sans antialiased;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  /* ── Card ──────────────────────────────────────── */
+  .card {
+    @apply bg-white rounded-2xl shadow-card p-6 border border-gray-100;
+  }
+  .card-hover {
+    @apply hover:shadow-card-hover transition-shadow duration-200;
+  }
+
+  /* ── Risk Level Badges ─────────────────────────── */
+  .badge-low      { @apply bg-green-100  text-green-700  font-semibold; }
+  .badge-medium   { @apply bg-yellow-100 text-yellow-700 font-semibold; }
+  .badge-high     { @apply bg-orange-100 text-orange-700 font-semibold; }
+  .badge-critical { @apply bg-red-100    text-red-700    font-semibold; }
+
+  /* ── Buttons ───────────────────────────────────── */
+  .btn-primary {
+    @apply bg-agri-600 hover:bg-agri-700 text-white font-semibold px-6 py-3 rounded-xl 
+           transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 
+           flex items-center gap-2 justify-center;
+  }
+  .btn-secondary {
+    @apply border-2 border-agri-600 text-agri-700 hover:bg-agri-50 font-semibold 
+           px-6 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 justify-center;
+  }
+  .btn-ghost {
+    @apply text-gray-600 hover:text-agri-700 hover:bg-agri-50 font-medium px-4 py-2 
+           rounded-lg transition-colors duration-200;
+  }
+
+  /* ── Form Controls ─────────────────────────────── */
+  .form-select {
+    @apply w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-800 
+           font-medium focus:outline-none focus:ring-2 focus:ring-agri-500 focus:border-transparent 
+           transition-all duration-200 appearance-none cursor-pointer;
+  }
+  .form-label {
+    @apply block text-sm font-semibold text-gray-700 mb-2;
+  }
+
+  /* ── Sidebar ───────────────────────────────────── */
+  .sidebar-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 font-medium
+           hover:bg-agri-50 hover:text-agri-700 transition-all duration-150 cursor-pointer;
+  }
+  .sidebar-item-active {
+    @apply bg-agri-600 text-white hover:bg-agri-700 hover:text-white;
+  }
+
+  /* ── Progress bar ──────────────────────────────── */
+  .progress-bar {
+    @apply h-2 rounded-full overflow-hidden bg-gray-100;
+  }
+  .progress-fill {
+    @apply h-full rounded-full transition-all duration-700 ease-out;
+  }
+}
+
+/* ── Risk Score Gauge ────────────────────────────── */
+.gauge-track {
+  fill: none;
+  stroke: #e5e7eb;
+  stroke-width: 12;
+  stroke-linecap: round;
+}
+.gauge-fill {
+  fill: none;
+  stroke-width: 12;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s ease-out, stroke 0.5s ease;
+}
+
+/* ── Leaflet overrides ───────────────────────────── */
+.leaflet-container {
+  border-radius: 1rem;
+  z-index: 1;
+}
+.leaflet-popup-content-wrapper {
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12) !important;
+}
+
+/* ── Scrollbar ───────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* ── Animations ──────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fadeIn 0.45s ease-out; }
+
+@keyframes countUp {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.animate-count-up { animation: countUp 0.6s cubic-bezier(0.175,0.885,0.32,1.275); }
+
+/* ── Hero gradient ───────────────────────────────── */
+.hero-gradient {
+  background: linear-gradient(135deg, #052e16 0%, #14532d 40%, #166534 70%, #15803d 100%);
+}
+.hero-pattern {
+  background-image: radial-gradient(circle at 20% 80%, rgba(34,197,94,0.15) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(134,239,172,0.1) 0%, transparent 50%);
+}
+
+/* ── Glass cards ─────────────────────────────────── */
+.glass {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.15);
+}
