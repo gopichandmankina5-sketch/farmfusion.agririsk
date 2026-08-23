@@ -17,11 +17,22 @@ def get_weather():
     """
     city = request.args.get("city", request.args.get("district", "Madurai"))
     state = request.args.get("state", "Tamil Nadu")
+    lat_str = request.args.get("lat")
+    lon_str = request.args.get("lon")
+    
+    lat = None
+    lon = None
+    if lat_str and lon_str:
+        try:
+            lat = float(lat_str)
+            lon = float(lon_str)
+        except ValueError:
+            return jsonify({"success": false, "error": "Invalid coordinates"}), 400
 
     try:
-        data = get_current_weather(city, state)
+        data = get_current_weather(city, state, lat=lat, lon=lon)
         if not data:
-            return jsonify({"error": "Weather data unavailable"}), 503
+            return jsonify({"success": False, "error": "Live weather unavailable"}), 503
         return jsonify(data), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"success": False, "error": "Live weather unavailable"}), 500

@@ -4,7 +4,6 @@ AgriRisk - Risk Calculation Tests
 
 import unittest
 import sys, os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from backend.utils.risk_calculator import (
     calc_weather_risk, calc_pest_risk, calc_soil_risk,

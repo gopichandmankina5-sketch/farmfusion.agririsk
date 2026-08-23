@@ -189,10 +189,10 @@ def build_input_data(state: str, district: str, crop: str, season: str) -> dict:
         }
     else:
         weather = {
-            "avg_temperature":       live_weather.get("temperature", 28),
-            "avg_rainfall":          live_weather.get("rainfall", 0),
-            "avg_humidity":          live_weather.get("humidity", 65),
-            "avg_wind_speed":        live_weather.get("wind_speed", 8),
+            "avg_temperature":       live_weather.get("temperature") or 28,
+            "avg_rainfall":          live_weather.get("rainfall") or 0,
+            "avg_humidity":          live_weather.get("humidity") or 65,
+            "avg_wind_speed":        live_weather.get("wind_speed") or 8,
             "extreme_weather_days":  0, 
             "weather_data":          live_weather 
         }

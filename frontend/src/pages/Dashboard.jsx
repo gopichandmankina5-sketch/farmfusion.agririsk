@@ -33,16 +33,23 @@ export default function Dashboard() {
     setLoading(true)
     setError(null)
     try {
-      const [riskResult, regionalResult, weatherResult] = await Promise.all([
+      const [riskResult, regionalResult] = await Promise.all([
         apiService.analyzeRisk(payload),
-        apiService.getRegionalRisk(),
-        apiService.getWeather(payload.district, payload.state).catch(() => null)
+        apiService.getRegionalRisk()
       ])
       setData(riskResult)
       setRegionalData(regionalResult.data || [])
       
-      // Merge weather data into a custom state or just attach it to data
-      setWeatherData(weatherResult || null)
+      // Merge weather data into a custom state
+      if (riskResult.weather_data) {
+        setWeatherData({
+          ...riskResult.weather_data, 
+          state: riskResult.state, 
+          district: riskResult.district
+        })
+      } else {
+        setWeatherData(null)
+      }
     } catch (err) {
       setError(err.message)
     } finally {

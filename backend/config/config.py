@@ -20,7 +20,7 @@ class Config:
     RAW_DATA_DIR   = os.path.join(DATA_DIR, "raw")
     PROC_DATA_DIR  = os.path.join(DATA_DIR, "processed")
     REGION_DIR     = os.path.join(DATA_DIR, "regional")
-    MODELS_DIR     = os.path.join(BASE_DIR, "backend", "models")
+    MODELS_DIR     = os.path.join(BASE_DIR, "ml", "models")
 
     # Risk weights (must sum to 1.0)
     RISK_WEIGHTS = {

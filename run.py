@@ -38,14 +38,14 @@ def check_data():
 
 def check_models():
     models = [
-        "backend/models/risk_model.pkl",
-        "backend/models/pest_model.pkl",
+        "ml/models/risk_model.pkl",
+        "ml/models/pest_model.pkl",
     ]
     for m in models:
         if os.path.exists(m):
             print(f"  ✅ {m}")
         else:
-            print(f"  ❌ {m} — run: python ml/train_risk_model.py")
+            print(f"  ❌ {m} — run: python -m ml.training.train_risk_model")
 
 if __name__ == "__main__":
     print("=" * 55)
@@ -72,13 +72,13 @@ Step 2 – Generate datasets:
   python data/generate_data.py
 
 Step 3 – Train ML models:
-  python ml/train_risk_model.py
-  python ml/train_pest_model.py
-  python ml/train_yield_model.py
-  python ml/train_market_model.py
+  python -m ml.training.train_risk_model
+  python -m ml.training.train_pest_model
+  python -m ml.training.train_yield_model
+  python -m ml.training.train_market_model
 
 Step 4 – Start the Flask backend:
-  python backend/app.py
+  python app.py
 
 Step 5 – In a new terminal, start the React frontend:
   cd frontend
