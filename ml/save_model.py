@@ -20,8 +20,6 @@ import sys
 import datetime
 import joblib
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, ROOT)
 
 from backend.config.config import Config
 from ml.preprocessing import NUMERIC_FEATURES, CATEGORICAL_FEATURES

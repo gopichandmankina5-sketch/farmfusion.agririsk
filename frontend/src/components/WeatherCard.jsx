@@ -13,7 +13,8 @@ export default function WeatherCard({ data }) {
   }
 
   const temp = (data.avg_temperature ?? data.temperature)?.toFixed(1) ?? '—'
-  const rain = (data.avg_rainfall ?? data.rainfall)?.toFixed(1) ?? '0'
+  const rainVal = data.avg_rainfall ?? data.rainfall
+  const rain = rainVal !== null && rainVal !== undefined ? `${rainVal.toFixed(1)} mm` : 'Not available'
   const pop = data.precipitation_probability !== null && data.precipitation_probability !== undefined 
                 ? `${data.precipitation_probability}%` : 'Not available'
   const hum = (data.avg_humidity ?? data.humidity)?.toFixed(1) ?? '—'
@@ -21,16 +22,23 @@ export default function WeatherCard({ data }) {
   const windStr = windVal !== null && windVal !== undefined ? windVal.toFixed(1) : 'Not available'
   const windUnit = windVal !== null && windVal !== undefined ? 'km/h' : ''
   
-  const cityName = data.location ? data.location.split(',')[0] : 'Location'
-  const timeStr = data.timestamp && data.timestamp.includes(' ') 
-    ? data.timestamp.split(' ')[1].slice(0,5) 
-    : (data.timestamp || 'Unknown')
+  const locationName = data.location || 'Location'
+  const formatTime = (ts) => {
+    if (!ts || !ts.includes(' ')) return 'Unknown'
+    const timePart = ts.split(' ')[1]
+    const [h, m] = timePart.split(':')
+    let hours = parseInt(h, 10)
+    const ampm = hours >= 12 ? 'PM' : 'AM'
+    hours = hours % 12 || 12
+    return `${hours}:${m} ${ampm}`
+  }
+  const timeStr = formatTime(data.timestamp)
   
   return (
     <div className="card animate-fade-in flex flex-col">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold text-gray-800">
-          Weather — {cityName}
+          Weather — {locationName}
         </h3>
         <div className="text-right flex flex-col items-end gap-1">
           <span className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-agri-600 bg-agri-50 px-2 py-1 rounded">
@@ -55,7 +63,7 @@ export default function WeatherCard({ data }) {
             <Cloud className="w-4 h-4" />
             <span className="text-xs font-semibold">Rainfall</span>
           </div>
-          <p className="text-lg font-bold text-blue-700">{rain} mm</p>
+          <p className="text-lg font-bold text-blue-700">{rain}</p>
         </div>
         <div className="bg-indigo-50 rounded-xl p-3">
           <div className="flex items-center gap-2 mb-1 text-indigo-600">
@@ -84,7 +92,7 @@ export default function WeatherCard({ data }) {
 
       <div className="mt-auto pt-2 border-t border-gray-100 text-center">
         <p className="text-[11px] text-gray-400">
-          Updated: {timeStr}
+          Weather observed: {timeStr}
         </p>
       </div>
     </div>
