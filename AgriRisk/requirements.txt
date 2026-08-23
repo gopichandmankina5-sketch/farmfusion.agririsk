@@ -1,5 +1,0 @@
-react
-flask
-pandas
-numpy
-scikit-learn

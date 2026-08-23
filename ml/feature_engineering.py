@@ -128,7 +128,6 @@ def get_feature_names(preprocessor: ColumnTransformer) -> list[str]:
 
 if __name__ == "__main__":
     import sys, os
-    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
     from ml.preprocessing import load_risk_features, clean_dataframe, split_features_target
     from sklearn.model_selection import train_test_split
