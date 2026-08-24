@@ -9,6 +9,7 @@ from backend.routes.risk_routes import risk_bp
 from backend.routes.regional_routes import regional_bp
 from backend.routes.recommendation_routes import recommendation_bp
 from backend.routes.translation_routes import translation_bp
+from backend.routes.tts_routes import tts_bp
 
 def create_app():
     # Fix console encoding for Windows emojis
@@ -24,6 +25,7 @@ def create_app():
     app.register_blueprint(regional_bp, url_prefix='/api/regional')
     app.register_blueprint(recommendation_bp, url_prefix='/api/recommendations')
     app.register_blueprint(translation_bp, url_prefix='/api/translation')
+    app.register_blueprint(tts_bp, url_prefix='/api/tts')
     
     return app
 
