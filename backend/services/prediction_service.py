@@ -5,6 +5,7 @@ Models are loaded once at startup and cached in memory.
 """
 
 import os
+# pyrefly: ignore [missing-import]
 import joblib
 import numpy as np
 import pandas as pd

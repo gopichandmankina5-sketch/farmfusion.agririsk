@@ -17,10 +17,15 @@ import RecommendationCard from '../components/RecommendationCard'
 import Loading from '../components/Loading'
 import { useLanguage } from '../context/LanguageContext'
 import { translateValue } from '../utils/translations'
+import { translateDistrict } from '../i18n/districtTranslations'
+import { translateAgriculture } from '../i18n/agricultureTranslations'
+import { getLocalizedName } from '../utils/localization'
+import { stateTranslations } from '../i18n/stateTranslations'
+import { generateRecommendations } from '../utils/recommendationEngine'
 
 // Default example data shown on dashboard load
 const DEFAULT_PAYLOAD = {
-  state: 'Tamil Nadu', district: 'Madurai', crop: 'Rice', season: 'Kharif'
+  state: 'tamil_nadu', district: 'madurai', crop: 'rice', season: 'kharif'
 }
 
 export default function Dashboard() {
@@ -85,10 +90,10 @@ export default function Dashboard() {
 
   const handleLocationChange = (e) => {
     const val = e.target.value;
-    if (val === 'Madurai') setPayload({ ...payload, state: 'Tamil Nadu', district: 'Madurai' });
-    if (val === 'Chennai') setPayload({ ...payload, state: 'Tamil Nadu', district: 'Chennai' });
-    if (val === 'Coimbatore') setPayload({ ...payload, state: 'Tamil Nadu', district: 'Coimbatore' });
-    if (val === 'Vijayawada') setPayload({ ...payload, state: 'Andhra Pradesh', district: 'Vijayawada' });
+    if (val === 'madurai') setPayload({ ...payload, state: 'tamil_nadu', district: 'madurai' });
+    if (val === 'chennai') setPayload({ ...payload, state: 'tamil_nadu', district: 'chennai' });
+    if (val === 'coimbatore') setPayload({ ...payload, state: 'tamil_nadu', district: 'coimbatore' });
+    if (val === 'vijayawada') setPayload({ ...payload, state: 'andhra_pradesh', district: 'vijayawada' });
   }
 
   return (
@@ -98,7 +103,7 @@ export default function Dashboard() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t('dashboard')}</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {t('overview')} {translateValue(payload.crop, language)} · {translateValue(payload.district, language)}, {translateValue(payload.state, language)} · {translateValue(payload.season, language)}
+            {t('overview')} {translateAgriculture('crop', payload.crop, language)} · {translateDistrict(payload.district, language)}, {translateDistrict(payload.state, language)} · {translateAgriculture('season', payload.season, language)}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -107,10 +112,10 @@ export default function Dashboard() {
             onChange={handleLocationChange}
             className="form-select text-sm py-2 pl-3 pr-8 rounded-lg border-gray-200 shadow-sm"
           >
-             <option value="Madurai">{translateValue('Madurai', language)}, {translateValue('Tamil Nadu', language)}</option>
-             <option value="Chennai">{translateValue('Chennai', language)}, {translateValue('Tamil Nadu', language)}</option>
-             <option value="Coimbatore">{translateValue('Coimbatore', language)}, {translateValue('Tamil Nadu', language)}</option>
-             <option value="Vijayawada">{translateValue('Vijayawada', language)}, {translateValue('Andhra Pradesh', language)}</option>
+             <option value="madurai">{translateDistrict('madurai', language)}, {getLocalizedName(stateTranslations['tamil_nadu'], language)}</option>
+             <option value="chennai">{translateDistrict('chennai', language)}, {getLocalizedName(stateTranslations['tamil_nadu'], language)}</option>
+             <option value="coimbatore">{translateDistrict('coimbatore', language)}, {getLocalizedName(stateTranslations['tamil_nadu'], language)}</option>
+             <option value="vijayawada">{translateDistrict('vijayawada', language)}, {getLocalizedName(stateTranslations['andhra_pradesh'], language)}</option>
           </select>
           <button onClick={fetchDashboard} className="btn-ghost flex items-center gap-2">
             <RefreshCw className="w-4 h-4" /> {t('refresh')}
@@ -190,7 +195,7 @@ export default function Dashboard() {
           </Link>
         </div>
         <div className="space-y-3">
-          {(recommendations || []).slice(0, 5).map((rec, idx) => (
+          {generateRecommendations(breakdown, risk_level, payload.crop, payload.state, payload.district, payload.season).slice(0, 5).map((rec, idx) => (
             <RecommendationCard key={rec.id || idx} rec={rec} index={idx} />
           ))}
         </div>

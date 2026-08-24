@@ -20,12 +20,8 @@ export default function RecommendationCard({ rec, index }) {
   const [expanded, setExpanded] = React.useState(index < 3)
   const meta = getPriorityMeta(rec.priority)
   
-  const recData = recommendationTranslations[rec.id]?.[language] || 
-                  recommendationTranslations[rec.id]?.['en'] || 
-                  { title: rec.title, detail: rec.detail };
-
-  const translatedTitle = recData.title;
-  const translatedDetail = recData.detail;
+  const translatedTitle = typeof rec.title === 'string' ? rec.title : (rec.title?.[language] || rec.title?.['en'] || '');
+  const translatedDetail = typeof rec.description === 'string' ? rec.description : (rec.description?.[language] || rec.description?.['en'] || '');
 
   return (
     <div

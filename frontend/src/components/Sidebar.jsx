@@ -38,51 +38,7 @@ export default function Sidebar() {
           ))}
         </nav>
 
-        {/* Divider */}
-        <div className="my-6 border-t border-gray-100" />
 
-        {/* Risk Legend */}
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3 px-4">
-          {t('risk_levels')}
-        </p>
-        <div className="space-y-2 px-2">
-          {[
-            { level: 'LOW',      color: 'bg-green-500',  range: '0–30' },
-            { level: 'MEDIUM',   color: 'bg-yellow-500', range: '31–60' },
-            { level: 'HIGH',     color: 'bg-orange-500', range: '61–80' },
-            { level: 'CRITICAL', color: 'bg-red-500',    range: '81–100' },
-          ].map(({ level, color, range }) => (
-            <div key={level} className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className={`w-2.5 h-2.5 rounded-full ${color}`} />
-                <span className="text-xs font-medium text-gray-600">{t(level.toLowerCase())}</span>
-              </div>
-              <span className="text-xs text-gray-400">{range}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Quick Stats placeholder */}
-        <div className="mt-6 mx-2 p-4 bg-agri-50 rounded-xl">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-4 h-4 text-agri-600" />
-            <span className="text-xs font-semibold text-agri-700">{t('platform_stats')}</span>
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex justify-between">
-              <span className="text-xs text-gray-500">{t('states_covered')}</span>
-              <span className="text-xs font-bold text-agri-700">10</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-xs text-gray-500">{t('districts')}</span>
-              <span className="text-xs font-bold text-agri-700">100</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-xs text-gray-500">{t('crops_tracked')}</span>
-              <span className="text-xs font-bold text-agri-700">15</span>
-            </div>
-          </div>
-        </div>
       </div>
     </aside>
   )

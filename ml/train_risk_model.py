@@ -49,6 +49,7 @@ warnings.filterwarnings("ignore")
 
 from ml.preprocessing      import load_risk_features, validate_dataframe, clean_dataframe, split_features_target, TARGET
 from ml.feature_engineering import build_preprocessor, get_feature_names
+# pyrefly: ignore [missing-import]
 from ml.evaluate_model      import evaluate_and_report
 from ml.save_model          import save_risk_model
 

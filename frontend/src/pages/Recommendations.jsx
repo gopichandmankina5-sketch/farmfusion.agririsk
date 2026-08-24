@@ -5,23 +5,15 @@ import RecommendationCard from '../components/RecommendationCard'
 import Loading from '../components/Loading'
 import { useLanguage } from '../context/LanguageContext'
 import { translateValue } from '../utils/translations'
+import { generateRecommendations } from '../utils/recommendationEngine'
 
 const PRIORITY_OPTIONS = ['All', 'critical', 'high', 'medium', 'low']
 const CATEGORY_OPTIONS = ['All', 'weather', 'pest', 'soil', 'market', 'production']
 
 // Default set of recommendations (shown without API)
-const DEFAULT_RECS = [
-  { id:'w1', title:'Monitor Drainage Systems',     detail:'Inspect field drainage and ensure proper water runoff.',              priority:'high',     category:'weather' },
-  { id:'p1', title:'Intensify Field Inspections',  detail:'Scout fields twice weekly for pest activity.',                        priority:'high',     category:'pest' },
-  { id:'s1', title:'Conduct Soil Testing',         detail:'Test NPK, pH, and organic carbon before next sowing.',               priority:'high',     category:'soil' },
-  { id:'m1', title:'Monitor Mandi Prices Daily',   detail:'Use AgMarkNet for real-time price comparisons.',                     priority:'medium',   category:'market' },
-  { id:'pr1',title:'Switch to High-Yield Varieties',detail:'Consult ICAR for recommended HYV seeds for your region.',           priority:'medium',   category:'production' },
-  { id:'p2', title:'Apply IPM Practices',          detail:'Combine biological and chemical controls for pest management.',       priority:'medium',   category:'pest' },
-  { id:'s2', title:'Correct Soil pH Imbalance',    detail:'Apply lime for acidic soils or sulfur for alkaline conditions.',     priority:'medium',   category:'soil' },
-  { id:'m2', title:'Consider Cold Storage',        detail:'If prices are low, use NWR-backed storage to sell at better time.',  priority:'low',      category:'market' },
-  { id:'w2', title:'Track Weather Forecasts Daily',detail:'Use IMD forecasts to plan irrigation and harvesting activities.',    priority:'low',      category:'weather' },
-  { id:'pr2',title:'Optimise Sowing Schedule',     detail:'Use crop calendars to plant within optimal windows.',                priority:'low',      category:'production' },
-]
+const DEFAULT_RECS = generateRecommendations({
+  weather: 65, pest: 50, soil: 45, market: 35, production: 55
+}, 'HIGH', 'Rice', 'Tamil Nadu', 'Madurai', 'Kharif');
 
 export default function Recommendations() {
   const { t, language } = useLanguage()
@@ -39,10 +31,10 @@ export default function Recommendations() {
   const refresh = async () => {
     setLoading(true)
     try {
-      const res = await apiService.getRecommendations({
-        weather: 65, pest: 50, soil: 45, market: 35, production: 55
-      }, 'HIGH')
-      if (res?.recommendations?.length) setRecs(res.recommendations)
+      // Simulate getting a new risk breakdown
+      const mockBreakdown = { weather: 65, pest: 50, soil: 45, market: 35, production: 55 }
+      const newRecs = generateRecommendations(mockBreakdown, 'HIGH', 'Rice', 'Tamil Nadu', 'Madurai', 'Kharif')
+      setRecs(newRecs)
     } catch {
       // Keep defaults
     } finally {

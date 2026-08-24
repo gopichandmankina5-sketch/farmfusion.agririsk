@@ -14,24 +14,15 @@ import RecommendationCard from '../components/RecommendationCard'
 import Loading from '../components/Loading'
 import { useLanguage } from '../context/LanguageContext'
 import { translateValue } from '../utils/translations'
+import { getLocalizedName } from '../utils/localization'
+import districtTranslations, { translateDistrict } from '../i18n/districtTranslations'
+import { getAgricultureList, translateAgriculture } from '../i18n/agricultureTranslations'
+import { getStateList } from '../i18n/stateTranslations'
+import { districtsByState } from '../data/indiaData'
+import { generateRecommendations } from '../utils/recommendationEngine'
 
-const SEASONS  = ['Kharif', 'Rabi', 'Zaid']
-const CROPS    = [
-  'Rice','Wheat','Sugarcane','Cotton','Maize','Soybean','Groundnut',
-  'Bajra','Jowar','Sunflower','Turmeric','Onion','Tomato','Potato','Mustard'
-]
-const STATES_DISTRICTS = {
-  'Tamil Nadu':     ['Chennai','Madurai','Coimbatore','Salem','Tiruchirappalli','Tirunelveli','Vellore','Erode','Thoothukudi','Thanjavur'],
-  'Maharashtra':    ['Mumbai','Pune','Nagpur','Nashik','Aurangabad','Solapur','Kolhapur','Amravati','Jalgaon','Latur'],
-  'Punjab':         ['Amritsar','Ludhiana','Jalandhar','Patiala','Bathinda','Mohali','Firozpur','Gurdaspur','Hoshiarpur','Sangrur'],
-  'Uttar Pradesh':  ['Lucknow','Kanpur','Agra','Varanasi','Prayagraj','Meerut','Ghaziabad','Bareilly','Aligarh','Moradabad'],
-  'Rajasthan':      ['Jaipur','Jodhpur','Kota','Bikaner','Udaipur','Ajmer','Bhilwara','Alwar','Sikar','Bharatpur'],
-  'West Bengal':    ['Kolkata','Darjeeling','Jalpaiguri','Murshidabad','Nadia','Howrah','Bardhaman','Bankura','Hooghly','Malda'],
-  'Karnataka':      ['Bengaluru','Mysuru','Hubli','Mangaluru','Belagavi','Kalaburagi','Ballari','Vijayapura','Shivamogga','Tumakuru'],
-  'Andhra Pradesh': ['Visakhapatnam','Vijayawada','Guntur','Tirupati','Nellore','Kurnool','Rajahmundry','Kadapa','Anantapur','Eluru'],
-  'Madhya Pradesh': ['Bhopal','Indore','Gwalior','Jabalpur','Ujjain','Sagar','Rewa','Satna','Ratlam','Morena'],
-  'Gujarat':        ['Ahmedabad','Surat','Vadodara','Rajkot','Gandhinagar','Bhavnagar','Jamnagar','Junagadh','Anand','Mehsana'],
-}
+import SearchableSelect from '../components/SearchableSelect'
+import indiaLocations from '../data/india_locations.json'
 
 export default function RiskAnalysis() {
   const { t, language } = useLanguage()
@@ -40,7 +31,87 @@ export default function RiskAnalysis() {
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState(null)
 
-  const districts = form.state ? (STATES_DISTRICTS[form.state] || []) : []
+  const [districts, setDistricts] = useState([])
+  const [districtsLoading, setDistrictsLoading] = useState(false)
+  const [districtError, setDistrictError] = useState(null)
+
+  // Fetch districts when state changes
+  useEffect(() => {
+    if (!form.state) {
+      setDistricts([]);
+      if (form.district) handleChange('district', '');
+      return;
+    }
+
+    let active = true;
+    const loadDistricts = async () => {
+      setDistrictsLoading(true);
+      setDistrictError("");
+      
+      const localDistricts = districtsByState[form.state] || [];
+      
+      try {
+        // Try the API using canonical state name if available
+        const stateName = getStateList().find(s => s.id === form.state)?.names.en || form.state;
+        const response = await fetch(`http://localhost:5000/api/meta/states?state=${stateName}`);
+        
+        if (!response.ok) throw new Error('API failed');
+        const fetchedDistricts = await response.json();
+        
+        if (!active) return;
+        
+        if (Array.isArray(fetchedDistricts) && fetchedDistricts.length > 0) {
+          // Process API districts
+          const cleanDistrictsStrings = fetchedDistricts.filter(Boolean).filter(district => {
+            const name = typeof district === "string" ? district : district.name;
+            if (!name) return false;
+            const lowerName = name.toLowerCase();
+            return (
+              !lowerName.includes("error") &&
+              !lowerName.includes("server") &&
+              !lowerName.includes("please try") &&
+              !lowerName.includes("internal") &&
+              name !== 'All'
+            );
+          }).map(district => typeof district === "string" ? district : district.name);
+          
+          const uniqueDistricts = [...new Set(cleanDistrictsStrings)];
+          const normalizedDistricts = uniqueDistricts.map(name => {
+            const normalizedValue = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+            if (districtTranslations[normalizedValue]) return districtTranslations[normalizedValue];
+            const match = Object.values(districtTranslations).find(t => t.names.en.toLowerCase() === name.toLowerCase());
+            if (match) return match;
+            return { id: normalizedValue, names: { en: name, hi: name, te: name, ta: name } };
+          });
+          
+          if (normalizedDistricts.length > 0) {
+            setDistricts(normalizedDistricts);
+            setDistrictsLoading(false);
+            if (form.district && !normalizedDistricts.some(d => d.id === form.district)) {
+              handleChange('district', '');
+            }
+            return;
+          }
+        }
+      } catch (err) {
+        // Silently fail to local districts below
+      }
+
+      if (!active) return;
+      
+      // Fallback securely to local districts
+      setDistricts(localDistricts);
+      setDistrictsLoading(false);
+      
+      if (form.district && !localDistricts.some(d => d.id === form.district)) {
+        handleChange('district', '');
+      }
+    };
+
+    loadDistricts();
+
+    return () => { active = false; };
+  }, [form.state]);
 
   const handleChange = (field, value) => {
     setForm(f => ({
@@ -83,74 +154,70 @@ export default function RiskAnalysis() {
         <form onSubmit={handleAnalyze}>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
             {/* State */}
-            <div>
-              <label className="form-label">{t('state')} *</label>
-              <div className="relative">
-                <select
-                  id="state-select"
-                  value={form.state}
-                  onChange={e => handleChange('state', e.target.value)}
-                  className="form-select pr-10"
-                >
-                  <option value="">{t('select_state')}</option>
-                  {Object.keys(STATES_DISTRICTS).map(s => (
-                    <option key={s} value={s}>{translateValue(s, language)}</option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
-              </div>
+            <div className="z-[60]">
+              <SearchableSelect
+                label={t('state')}
+                value={form.state}
+                options={getStateList()}
+                onChange={val => handleChange('state', val)}
+                placeholder={t('select_state')}
+                type="state"
+              />
             </div>
 
-            {/* District */}
-            <div>
-              <label className="form-label">{t('district')} *</label>
-              <div className="relative">
-                <select
-                  id="district-select"
-                  value={form.district}
-                  onChange={e => handleChange('district', e.target.value)}
-                  className="form-select pr-10"
-                  disabled={!form.state}
-                >
-                  <option value="">{form.state ? t('select_district') : t('select_state_first')}</option>
-                  {districts.map(d => <option key={d} value={d}>{translateValue(d, language)}</option>)}
-                </select>
-                <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
-              </div>
+            <div className="z-50">
+              {districtsLoading ? (
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-gray-700">{t('district')}</label>
+                  <div className="h-10 border border-gray-200 rounded-lg flex items-center px-3 bg-gray-50">
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin text-gray-400" />
+                    <span className="text-sm text-gray-500">
+                      {getLocalizedName({ names: { en: "Loading districts...", hi: "जिले लोड हो रहे हैं...", te: "జిల్లాలను లోడ్ చేస్తోంది...", ta: "மாவட்டங்களை ஏற்றுகிறது..." } }, language)}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-1">
+                  <SearchableSelect
+                    label={t('district')}
+                    value={form.district}
+                    options={districts}
+                    onChange={val => handleChange('district', val)}
+                    placeholder={form.state ? t('select_district') : t('select_state_first')}
+                    disabled={!form.state || districts.length === 0}
+                  />
+                  {districtError && (
+                <p className="mt-1.5 text-xs font-medium text-orange-600 flex items-center">
+                  <span className="w-1 h-1 rounded-full bg-orange-600 mr-1.5 animate-pulse"></span>
+                  {getLocalizedName({ names: { en: "Using local district data", hi: "स्थानीय जिला डेटा का उपयोग", te: "స్థానిక జిల్లా డేటాను ఉపయోగిస్తోంది", ta: "உள்ளூர் மாவட்ட தரவைப் பயன்படுத்துதல்" } }, language)}
+                </p>
+              )}
+                </div>
+              )}
             </div>
 
             {/* Crop */}
-            <div>
-              <label className="form-label">{t('crop')} *</label>
-              <div className="relative">
-                <select
-                  id="crop-select"
-                  value={form.crop}
-                  onChange={e => handleChange('crop', e.target.value)}
-                  className="form-select pr-10"
-                >
-                  <option value="">{t('select_crop')}</option>
-                  {CROPS.map(c => <option key={c} value={c}>{translateValue(c, language)}</option>)}
-                </select>
-                <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
-              </div>
+            <div className="z-40">
+              <SearchableSelect
+                label={t('crop')}
+                value={form.crop}
+                options={getAgricultureList('crop')}
+                onChange={val => handleChange('crop', val)}
+                placeholder={t('select_crop')}
+                type="crop"
+              />
             </div>
 
             {/* Season */}
-            <div>
-              <label className="form-label">{t('season')} *</label>
-              <div className="relative">
-                <select
-                  id="season-select"
-                  value={form.season}
-                  onChange={e => handleChange('season', e.target.value)}
-                  className="form-select pr-10"
-                >
-                  <option value="">{t('select_season')}</option>
-                  {SEASONS.map(s => <option key={s} value={s}>{translateValue(s, language)}</option>)}
-                </select>
-                <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
-              </div>
+            <div className="z-30">
+              <SearchableSelect
+                label={t('season')}
+                value={form.season}
+                options={getAgricultureList('season')}
+                onChange={val => handleChange('season', val)}
+                placeholder={t('select_season')}
+                type="season"
+              />
             </div>
           </div>
 
@@ -190,7 +257,7 @@ export default function RiskAnalysis() {
                                                  'bg-green-50 border-green-200'}`}>
             <div>
               <p className="text-sm font-medium text-gray-500">
-                📍 {translateValue(result.district, language)}, {translateValue(result.state, language)} · {translateValue(result.crop, language)} · {translateValue(result.season, language)}
+                📍 {translateDistrict(result.district, language)}, {translateDistrict(result.state, language)} · {translateAgriculture('crop', result.crop, language)} · {translateAgriculture('season', result.season, language)}
               </p>
               <h2 className="text-2xl font-bold text-gray-900 mt-1">
                 {t('risk_level')}:&nbsp;
@@ -268,10 +335,17 @@ export default function RiskAnalysis() {
           {/* Recommendations */}
           <div className="card">
             <h3 className="font-semibold text-gray-800 mb-5">
-              {t('recommendations')} - {translateValue(result.crop, language)}
+              {t('recommendations')} - {translateAgriculture('crop', result.crop, language)}
             </h3>
             <div className="space-y-3">
-              {(result.recommendations || []).map((rec, idx) => (
+              {generateRecommendations(
+                result.breakdown,
+                result.risk_level,
+                form.crop,
+                form.state,
+                form.district,
+                form.season
+              ).map((rec, idx) => (
                 <RecommendationCard key={rec.id || idx} rec={rec} index={idx} />
               ))}
             </div>

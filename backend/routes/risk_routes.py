@@ -5,23 +5,47 @@ GET  /api/risk/regional – regional risk summary
 GET  /api/risk/factors  – top risk factors (aggregated)
 """
 
+import os
+import json
+import re
 from flask import Blueprint, request, jsonify
 from backend.services.risk_service import analyze_risk
 from backend.services.regional_service import get_regional_risk, get_state_risk_summary
 
 risk_bp = Blueprint("risk", __name__)
 
-VALID_STATES = [
-    "Tamil Nadu", "Maharashtra", "Punjab", "Uttar Pradesh", "Rajasthan",
-    "West Bengal", "Karnataka", "Andhra Pradesh", "Madhya Pradesh", "Gujarat",
-]
+def make_id(text):
+    if not text: return ""
+    return re.sub(r'[^a-z0-9]+', '_', text.lower()).strip('_')
 
-VALID_CROPS = [
+# Dynamically load valid locations
+VALID_LOCATIONS = {}
+try:
+    loc_path = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "src", "data", "india_locations.json")
+    with open(loc_path, "r", encoding="utf-8") as f:
+        india_locs = json.load(f)
+        for state_name, dists in india_locs.items():
+            s_id = make_id(state_name.replace(" (UT)", ""))
+            dist_map = {}
+            for d in dists:
+                if not d: continue
+                d_name = d if isinstance(d, str) else d.get("name")
+                dist_map[make_id(d_name)] = d_name
+            VALID_LOCATIONS[s_id] = {
+                "name": state_name,
+                "district_map": dist_map
+            }
+except Exception as e:
+    print("Warning: failed to load india_locations.json for validation:", e)
+
+RAW_CROPS = [
     "Rice", "Wheat", "Sugarcane", "Cotton", "Maize", "Soybean", "Groundnut",
     "Bajra", "Jowar", "Sunflower", "Turmeric", "Onion", "Tomato", "Potato", "Mustard",
 ]
+VALID_CROPS = {make_id(c): c for c in RAW_CROPS}
 
-VALID_SEASONS = ["Kharif", "Rabi", "Zaid"]
+RAW_SEASONS = ["Kharif", "Rabi", "Zaid"]
+VALID_SEASONS = {make_id(s): s for s in RAW_SEASONS}
 
 
 @risk_bp.route("/analyze", methods=["POST"])
@@ -36,6 +60,9 @@ def analyze():
       { risk_score, risk_level, breakdown, factors, recommendations, trend, ... }
     """
     body = request.get_json(silent=True) or {}
+    
+    # Log the exact request payload as requested
+    print("RISK ANALYSIS REQUEST:", body)
 
     state   = body.get("state", "").strip()
     district = body.get("district", "").strip()
@@ -48,14 +75,31 @@ def analyze():
     if not district: errors.append("'district' is required")
     if not crop:    errors.append("'crop' is required")
     if not season:  errors.append("'season' is required")
+
+    # Validate against canonical IDs
+    if state and state not in VALID_LOCATIONS:
+        errors.append(f"Invalid state canonical ID: '{state}'")
+    elif district and district not in VALID_LOCATIONS[state]["district_map"]:
+        errors.append(f"District canonical ID '{district}' is not valid for state '{state}'")
+
+    if crop and crop not in VALID_CROPS:
+        errors.append(f"Invalid crop canonical ID: '{crop}'")
+
     if season and season not in VALID_SEASONS:
-        errors.append(f"'season' must be one of: {VALID_SEASONS}")
+        errors.append(f"Invalid season canonical ID: '{season}'")
 
     if errors:
         return jsonify({"error": "Validation failed", "details": errors}), 400
 
+    # Convert back to Title Case canonical names expected by ML algorithms
+    canonical_state = VALID_LOCATIONS[state]["name"]
+    canonical_district = VALID_LOCATIONS[state]["district_map"][district]
+    canonical_crop = VALID_CROPS[crop]
+    canonical_season = VALID_SEASONS[season]
+
     try:
-        result = analyze_risk(state, district, crop, season)
+        # Pass ML-expected names to analyze_risk
+        result = analyze_risk(canonical_state, canonical_district, canonical_crop, canonical_season)
         return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": "Analysis failed", "detail": str(e)}), 500
