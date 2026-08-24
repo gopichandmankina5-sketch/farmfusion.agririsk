@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import { getRiskMeta, classifyRisk, getRiskColor } from '../utils/riskUtils'
 import { useLanguage } from '../context/LanguageContext'
 import { translateValue } from '../utils/translations'
+import { translateDistrict } from '../i18n/districtTranslations'
 
 // State centroids for India (approximate lat/lng)
 const STATE_COORDS = {
@@ -137,7 +138,7 @@ function addMarkers(L, map, data, onRegionClick, t, language) {
 
     circle.bindPopup(`
       <div style="font-family:Inter,sans-serif;min-width:180px">
-        <h4 style="font-size:14px;font-weight:700;color:#1f2937;margin:0 0 8px">${translateValue(state, language)}</h4>
+        <h4 style="font-size:14px;font-weight:700;color:#1f2937;margin:0 0 8px">${translateDistrict(state, language)}</h4>
         <div style="display:flex;justify-content:space-between;margin-bottom:4px">
           <span style="color:#6b7280;font-size:12px">${t('avg_risk_score') || 'Avg Risk Score'}</span>
           <span style="font-weight:700;color:${color}">${avgScore}</span>
