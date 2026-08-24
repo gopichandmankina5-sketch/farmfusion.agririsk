@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import { getRiskMeta, classifyRisk, getRiskColor } from '../utils/riskUtils'
+import { useLanguage } from '../context/LanguageContext'
+import { translateValue } from '../utils/translations'
 
 // State centroids for India (approximate lat/lng)
 const STATE_COORDS = {
@@ -16,6 +18,7 @@ const STATE_COORDS = {
 }
 
 export default function RegionalMap({ data = [], onRegionClick }) {
+  const { t, language } = useLanguage()
   const mapRef  = useRef(null)
   const mapInst = useRef(null)
 
@@ -52,7 +55,7 @@ export default function RegionalMap({ data = [], onRegionClick }) {
       mapInst.current = map
 
       // Add markers
-      addMarkers(L, map, data, onRegionClick)
+      addMarkers(L, map, data, onRegionClick, t, language)
     }).catch(console.error)
 
     return () => {
@@ -73,15 +76,15 @@ export default function RegionalMap({ data = [], onRegionClick }) {
           mapInst.current.removeLayer(layer)
         }
       })
-      addMarkers(L, mapInst.current, data, onRegionClick)
+      addMarkers(L, mapInst.current, data, onRegionClick, t, language)
     })
-  }, [data])
+  }, [data, language])
 
   return (
     <div className="card p-0 overflow-hidden">
       <div className="p-5 border-b border-gray-100">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-gray-800">Regional Risk Map</h3>
+          <h3 className="font-semibold text-gray-800">{t('regional_risk_map') || 'Regional Risk Map'}</h3>
           <div className="flex items-center gap-3 text-xs">
             {[
               { level: 'LOW',      color: '#22c55e' },
@@ -92,7 +95,7 @@ export default function RegionalMap({ data = [], onRegionClick }) {
               <div key={level} className="flex items-center gap-1">
                 <span className="w-3 h-3 rounded-full border-2 border-white shadow-sm"
                       style={{ backgroundColor: color }} />
-                <span className="text-gray-500 font-medium">{level}</span>
+                <span className="text-gray-500 font-medium">{translateValue(level, language) || level}</span>
               </div>
             ))}
           </div>
@@ -105,7 +108,7 @@ export default function RegionalMap({ data = [], onRegionClick }) {
 
 // riskToColor is now imported as getRiskColor
 
-function addMarkers(L, map, data, onRegionClick) {
+function addMarkers(L, map, data, onRegionClick, t, language) {
   // Group by state and pick aggregated score
   const stateMap = {}
   data.forEach(d => {
@@ -134,17 +137,17 @@ function addMarkers(L, map, data, onRegionClick) {
 
     circle.bindPopup(`
       <div style="font-family:Inter,sans-serif;min-width:180px">
-        <h4 style="font-size:14px;font-weight:700;color:#1f2937;margin:0 0 8px">${state}</h4>
+        <h4 style="font-size:14px;font-weight:700;color:#1f2937;margin:0 0 8px">${translateValue(state, language)}</h4>
         <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-          <span style="color:#6b7280;font-size:12px">Avg Risk Score</span>
+          <span style="color:#6b7280;font-size:12px">${t('avg_risk_score') || 'Avg Risk Score'}</span>
           <span style="font-weight:700;color:${color}">${avgScore}</span>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-          <span style="color:#6b7280;font-size:12px">Risk Level</span>
-          <span style="font-weight:700;color:${color}">${level}</span>
+          <span style="color:#6b7280;font-size:12px">${t('risk_level') || 'Risk Level'}</span>
+          <span style="font-weight:700;color:${color}">${translateValue(level, language)}</span>
         </div>
         <div style="display:flex;justify-content:space-between">
-          <span style="color:#6b7280;font-size:12px">Districts</span>
+          <span style="color:#6b7280;font-size:12px">${t('districts') || 'Districts'}</span>
           <span style="font-weight:600;color:#374151">${items.length}</span>
         </div>
       </div>

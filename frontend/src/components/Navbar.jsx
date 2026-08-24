@@ -1,18 +1,20 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { 
-  Leaf, BarChart3, Map, Lightbulb, Activity, Menu, X, Sprout
+  Leaf, BarChart3, Map, Lightbulb, Activity, Menu, X, Sprout, Globe
 } from 'lucide-react'
+import { useLanguage } from '../context/LanguageContext'
 
 export default function Navbar({ onMenuToggle, menuOpen }) {
   const location = useLocation()
+  const { language, setLanguage, t } = useLanguage()
 
   const navLinks = [
-    { to: '/',               label: 'Home',         icon: Leaf },
-    { to: '/dashboard',      label: 'Dashboard',    icon: BarChart3 },
-    { to: '/risk-analysis',  label: 'Risk Analysis', icon: Activity },
-    { to: '/regional-risk',  label: 'Regional Risk', icon: Map },
-    { to: '/recommendations',label: 'Recommendations', icon: Lightbulb },
+    { to: '/',               label: t('home'),         icon: Leaf },
+    { to: '/dashboard',      label: t('dashboard'),    icon: BarChart3 },
+    { to: '/risk-analysis',  label: t('risk_analysis'), icon: Activity },
+    { to: '/regional-risk',  label: t('regional_risk'), icon: Map },
+    { to: '/recommendations',label: t('recommendations'), icon: Lightbulb },
   ]
 
   const isActive = (path) =>
@@ -58,9 +60,23 @@ export default function Navbar({ onMenuToggle, menuOpen }) {
 
           {/* CTA + Mobile menu */}
           <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center bg-gray-50 rounded-lg border border-gray-200 px-2 py-1">
+              <Globe className="w-4 h-4 text-gray-500 mr-2" />
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className="bg-transparent text-sm text-gray-700 outline-none cursor-pointer"
+              >
+                <option value="en">English</option>
+                <option value="ta">தமிழ்</option>
+                <option value="te">తెలుగు</option>
+                <option value="hi">हिन्दी</option>
+              </select>
+            </div>
+            
             <Link to="/risk-analysis" className="hidden sm:flex btn-primary text-sm py-2 px-4">
               <Activity className="w-4 h-4" />
-              Analyze Risk
+              {t('analyze_risk')}
             </Link>
             <button
               onClick={onMenuToggle}

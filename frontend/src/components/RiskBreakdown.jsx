@@ -4,6 +4,7 @@ import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend
 } from 'recharts'
 import { getCategoryColor, breakdownToChartData } from '../utils/riskUtils'
+import { useLanguage } from '../context/LanguageContext'
 
 const RADIAN = Math.PI / 180
 
@@ -36,6 +37,7 @@ const CustomTooltip = ({ active, payload, totalScore }) => {
 }
 
 export default function RiskBreakdown({ breakdown }) {
+  const { t } = useLanguage()
   if (!breakdown) return null
 
   const chartData = breakdownToChartData(breakdown)
@@ -43,7 +45,7 @@ export default function RiskBreakdown({ breakdown }) {
 
   return (
     <div className="card animate-fade-in">
-      <h3 className="font-semibold text-gray-800 mb-6">Risk Breakdown</h3>
+      <h3 className="font-semibold text-gray-800 mb-6">{t('risk_breakdown')}</h3>
 
       {/* Donut Chart */}
       <div className="flex justify-center mb-6">
@@ -76,7 +78,7 @@ export default function RiskBreakdown({ breakdown }) {
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2">
                 <span className="text-base">{icon}</span>
-                <span className="text-sm font-medium text-gray-700">{name}</span>
+                <span className="text-sm font-medium text-gray-700">{t(name.toLowerCase())}</span>
               </div>
               <span className="text-sm font-bold" style={{ color }}>
                 {Math.round(value)}

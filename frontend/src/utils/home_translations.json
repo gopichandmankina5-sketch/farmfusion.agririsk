@@ -1,0 +1,47 @@
+{
+  "en": {
+    "feature_w_desc": "Analyse temperature, rainfall, humidity and extreme weather events impacting crops.",
+    "feature_p_desc": "Predict pest and disease outbreak probabilities using historical and seasonal data.",
+    "feature_s_desc": "Evaluate soil health: pH balance, NPK nutrients, and moisture deficits.",
+    "feature_m_desc": "Track price volatility, demand-supply imbalances, and market access risk.",
+    "feature_pr_desc": "Assess yield shortfall risk based on historical productivity and growing conditions.",
+    "step_1_title": "Select Your Location & Crop",
+    "step_1_desc": "Choose your state, district, crop type, and cultivation season.",
+    "step_2_title": "AI Analyses Agricultural Data",
+    "step_2_desc": "Our ML models process weather, soil, pest, market, and yield datasets.",
+    "step_3_title": "View Risk Score & Breakdown",
+    "step_3_desc": "Get a 0–100 risk score with a breakdown across all 5 risk categories.",
+    "step_4_title": "Act on Recommendations",
+    "step_4_desc": "Receive data-driven, priority-ranked recommendations to mitigate risks."
+  },
+  "hi": {
+    "feature_w_desc": "फसलों को प्रभावित करने वाले तापमान, वर्षा, आर्द्रता और चरम मौसम की घटनाओं का विश्लेषण करें।",
+    "feature_p_desc": "ऐतिहासिक और मौसमी डेटा का उपयोग करके कीट और बीमारी के प्रकोप की संभावनाओं की भविष्यवाणी करें।",
+    "feature_s_desc": "मिट्टी के स्वास्थ्य का मूल्यांकन करें: पीएच संतुलन, एनपीके पोषक तत्व, और नमी की कमी।",
+    "feature_m_desc": "मूल्य अस्थिरता, मांग-आपूर्ति असंतुलन, और बाजार पहुंच जोखिम को ट्रैक करें।",
+    "feature_pr_desc": "ऐतिहासिक उत्पादकता और बढ़ती स्थितियों के आधार पर उपज की कमी के जोखिम का आकलन करें।",
+    "step_1_title": "अपना स्थान और फसल चुनें",
+    "step_1_desc": "अपना राज्य, जिला, फसल का प्रकार और खेती का मौसम चुनें।",
+    "step_2_title": "AI कृषि डेटा का विश्लेषण करता है",
+    "step_2_desc": "हमारे एमएल मॉडल मौसम, मिट्टी, कीट, बाजार और उपज डेटासेट को संसाधित करते हैं।",
+    "step_3_title": "जोखिम स्कोर और विवरण देखें",
+    "step_3_desc": "सभी 5 जोखिम श्रेणियों में विवरण के साथ 0-100 जोखिम स्कोर प्राप्त करें।",
+    "step_4_title": "सिफारिशों पर कार्य करें",
+    "step_4_desc": "जोखिमों को कम करने के लिए डेटा-संचालित, प्राथमिकता-रैंक वाली सिफारिशें प्राप्त करें।"
+  },
+  "te": {
+    "feature_w_desc": "పంటలపై ప్రభావం చూపే ఉష్ణోగ్రత, వర్షపాతం, తేమ మరియు విపరీతమైన వాతావరణ సంఘటనలను విశ్లేషించండి.",
+    "feature_p_desc": "చారిత్రక మరియు కాలానుగుణ డేటాను ఉపయోగించి తెగులు మరియు వ్యాధుల వ్యాప్తి సంభావ్యతను అంచనా వేయండి.",
+    "feature_s_desc": "నేల ఆరోగ్యాన్ని అంచనా వేయండి: pH సమతుల్యత, NPK పోషకాలు మరియు తేమ లోపాలు.",
+    "feature_m_desc": "ధర అస్థిరత, డిమాండ్-సరఫరా అసమతుల్యత మరియు మార్కెట్ యాక్సెస్ ప్రమాదాన్ని ట్రాక్ చేయండి.",
+    "feature_pr_desc": "చారిత్రక ఉత్పాదకత మరియు పెరుగుతున్న పరిస్థితుల ఆధారంగా దిగుబడి కొరత ప్రమాదాన్ని అంచనా వేయండి.",
+    "step_1_title": "మీ స్థానం & పంటను ఎంచుకోండి",
+    "step_1_desc": "మీ రాష్ట్రం, జిల్లా, పంట రకం మరియు సాగు సీజన్‌ను ఎంచుకోండి.",
+    "step_2_title": "AI వ్యవసాయ డేటాను విశ్లేషిస్తుంది",
+    "step_2_desc": "మా ML నమూనాలు వాతావరణం, నేల, తెగులు, మార్కెట్ మరియు దిగుబడి డేటాసెట్‌లను ప్రాసెస్ చేస్తాయి.",
+    "step_3_title": "రిస్క్ స్కోర్ & బ్రేక్‌డౌన్ చూడండి",
+    "step_3_desc": "అన్ని 5 రిస్క్ విభాగాలలో బ్రేక్‌డౌన్‌తో 0–100 రిస్క్ స్కోర్‌ను పొందండి.",
+    "step_4_title": "సిఫార్సులపై చర్య తీసుకోండి",
+    "step_4_desc": "ప్రమాదాలను తగ్గించడానికి డేటా-ఆధారిత, ప్రాధాన్యత-ర్యాంక్ సిఫార్సులను స్వీకరించండి."
+  }
+}

@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from 'react'
 import { getRiskColor, classifyRisk } from '../utils/riskUtils'
+import { useLanguage } from '../context/LanguageContext'
 
 export default function RiskGauge({ score = 0, breakdown, size = 220 }) {
+  const { t, language } = useLanguage()
   const level = classifyRisk(score)
   const color = getRiskColor(score)
 
@@ -34,10 +36,10 @@ export default function RiskGauge({ score = 0, breakdown, size = 220 }) {
   const fillAngle = startAngle + (score / 100) * totalAngle
 
   const levelMeta = {
-    LOW:      { label: 'Low Risk',      sub: 'Situation normal' },
-    MEDIUM:   { label: 'Medium Risk',   sub: 'Monitor closely' },
-    HIGH:     { label: 'High Risk',     sub: 'Take action soon' },
-    CRITICAL: { label: 'Critical Risk', sub: 'Immediate action' },
+    LOW:      { label: t('low_risk_label') || 'Low Risk',      sub: t('low_risk_sub') || 'Situation normal' },
+    MEDIUM:   { label: t('med_risk_label') || 'Medium Risk',   sub: t('med_risk_sub') || 'Monitor closely' },
+    HIGH:     { label: t('high_risk_label') || 'High Risk',     sub: t('high_risk_sub') || 'Take action soon' },
+    CRITICAL: { label: t('crit_risk_label') || 'Critical Risk', sub: t('crit_risk_sub') || 'Immediate action' },
   }
 
   let highestFactorsStr = ''
@@ -46,8 +48,14 @@ export default function RiskGauge({ score = 0, breakdown, size = 220 }) {
     if (sorted.length >= 2) {
       const f1 = sorted[0][0]
       const f2 = sorted[1][0]
-      const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1)
-      highestFactorsStr = `Risk is primarily influenced by ${capitalize(f1)} and ${capitalize(f2)} factors.`
+      // Use localized format string, or fallback to English
+      const locStr = t('risk_influenced_by')
+      if (locStr) {
+        highestFactorsStr = locStr.replace('{f1}', t(f1.toLowerCase())).replace('{f2}', t(f2.toLowerCase()))
+      } else {
+        const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1)
+        highestFactorsStr = `Risk is primarily influenced by ${capitalize(f1)} and ${capitalize(f2)} factors.`
+      }
     }
   }
 
@@ -93,10 +101,9 @@ export default function RiskGauge({ score = 0, breakdown, size = 220 }) {
           fontFamily="Inter, sans-serif"
           fontWeight="500"
         >
-          out of 100
+          {t('out_of_100') || 'out of 100'}
         </text>
 
-        {/* Level text */}
         <text
           x={cx} y={cy + size * 0.28}
           textAnchor="middle"
@@ -106,7 +113,7 @@ export default function RiskGauge({ score = 0, breakdown, size = 220 }) {
           fontFamily="Inter, sans-serif"
           letterSpacing="-0.5"
         >
-          {level}
+          {t(level.toLowerCase()) || level}
         </text>
       </svg>
 

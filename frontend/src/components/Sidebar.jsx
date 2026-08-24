@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { BarChart3, Map, Lightbulb, Activity, Home, TrendingUp } from 'lucide-react'
+import { useLanguage } from '../context/LanguageContext'
 
 const navItems = [
   { to: '/',               label: 'Home',          icon: Home },
@@ -12,6 +13,7 @@ const navItems = [
 
 export default function Sidebar() {
   const location = useLocation()
+  const { t } = useLanguage()
 
   const isActive = (path) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
@@ -31,7 +33,7 @@ export default function Sidebar() {
               className={`sidebar-item ${isActive(to) ? 'sidebar-item-active' : ''}`}
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
-              <span className="text-sm">{label}</span>
+              <span className="text-sm">{t(label.toLowerCase().replace(' ', '_'))}</span>
             </Link>
           ))}
         </nav>
@@ -41,7 +43,7 @@ export default function Sidebar() {
 
         {/* Risk Legend */}
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3 px-4">
-          Risk Levels
+          {t('risk_levels')}
         </p>
         <div className="space-y-2 px-2">
           {[
@@ -53,7 +55,7 @@ export default function Sidebar() {
             <div key={level} className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className={`w-2.5 h-2.5 rounded-full ${color}`} />
-                <span className="text-xs font-medium text-gray-600">{level}</span>
+                <span className="text-xs font-medium text-gray-600">{t(level.toLowerCase())}</span>
               </div>
               <span className="text-xs text-gray-400">{range}</span>
             </div>
@@ -64,19 +66,19 @@ export default function Sidebar() {
         <div className="mt-6 mx-2 p-4 bg-agri-50 rounded-xl">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="w-4 h-4 text-agri-600" />
-            <span className="text-xs font-semibold text-agri-700">Platform Stats</span>
+            <span className="text-xs font-semibold text-agri-700">{t('platform_stats')}</span>
           </div>
           <div className="space-y-1.5">
             <div className="flex justify-between">
-              <span className="text-xs text-gray-500">States Covered</span>
+              <span className="text-xs text-gray-500">{t('states_covered')}</span>
               <span className="text-xs font-bold text-agri-700">10</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-xs text-gray-500">Districts</span>
+              <span className="text-xs text-gray-500">{t('districts')}</span>
               <span className="text-xs font-bold text-agri-700">100</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-xs text-gray-500">Crops Tracked</span>
+              <span className="text-xs text-gray-500">{t('crops_tracked')}</span>
               <span className="text-xs font-bold text-agri-700">15</span>
             </div>
           </div>

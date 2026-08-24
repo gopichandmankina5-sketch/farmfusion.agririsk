@@ -12,6 +12,8 @@ import RiskFactors from '../components/RiskFactors'
 import WeatherCard from '../components/WeatherCard'
 import RecommendationCard from '../components/RecommendationCard'
 import Loading from '../components/Loading'
+import { useLanguage } from '../context/LanguageContext'
+import { translateValue } from '../utils/translations'
 
 const SEASONS  = ['Kharif', 'Rabi', 'Zaid']
 const CROPS    = [
@@ -32,6 +34,7 @@ const STATES_DISTRICTS = {
 }
 
 export default function RiskAnalysis() {
+  const { t, language } = useLanguage()
   const [form, setForm] = useState({ state: '', district: '', crop: '', season: '' })
   const [result,  setResult]  = useState(null)
   const [loading, setLoading] = useState(false)
@@ -68,20 +71,20 @@ export default function RiskAnalysis() {
   return (
     <div className="p-5 max-w-7xl mx-auto space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Risk Analysis</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('risk_analysis')}</h1>
         <p className="text-sm text-gray-500 mt-0.5">
-          Select your location, crop, and season to get a detailed risk assessment.
+          {t('risk_analysis_desc')}
         </p>
       </div>
 
       {/* ── Analysis Form ──────────────────────────────────── */}
       <div className="card">
-        <h2 className="font-semibold text-gray-800 mb-5">Enter Analysis Parameters</h2>
+        <h2 className="font-semibold text-gray-800 mb-5">{t('enter_parameters')}</h2>
         <form onSubmit={handleAnalyze}>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
             {/* State */}
             <div>
-              <label className="form-label">State *</label>
+              <label className="form-label">{t('state')} *</label>
               <div className="relative">
                 <select
                   id="state-select"
@@ -89,9 +92,9 @@ export default function RiskAnalysis() {
                   onChange={e => handleChange('state', e.target.value)}
                   className="form-select pr-10"
                 >
-                  <option value="">Select State</option>
+                  <option value="">{t('select_state')}</option>
                   {Object.keys(STATES_DISTRICTS).map(s => (
-                    <option key={s} value={s}>{s}</option>
+                    <option key={s} value={s}>{translateValue(s, language)}</option>
                   ))}
                 </select>
                 <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
@@ -100,7 +103,7 @@ export default function RiskAnalysis() {
 
             {/* District */}
             <div>
-              <label className="form-label">District *</label>
+              <label className="form-label">{t('district')} *</label>
               <div className="relative">
                 <select
                   id="district-select"
@@ -109,8 +112,8 @@ export default function RiskAnalysis() {
                   className="form-select pr-10"
                   disabled={!form.state}
                 >
-                  <option value="">{form.state ? 'Select District' : '— Select State First —'}</option>
-                  {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                  <option value="">{form.state ? t('select_district') : t('select_state_first')}</option>
+                  {districts.map(d => <option key={d} value={d}>{translateValue(d, language)}</option>)}
                 </select>
                 <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
               </div>
@@ -118,7 +121,7 @@ export default function RiskAnalysis() {
 
             {/* Crop */}
             <div>
-              <label className="form-label">Crop *</label>
+              <label className="form-label">{t('crop')} *</label>
               <div className="relative">
                 <select
                   id="crop-select"
@@ -126,8 +129,8 @@ export default function RiskAnalysis() {
                   onChange={e => handleChange('crop', e.target.value)}
                   className="form-select pr-10"
                 >
-                  <option value="">Select Crop</option>
-                  {CROPS.map(c => <option key={c} value={c}>{c}</option>)}
+                  <option value="">{t('select_crop')}</option>
+                  {CROPS.map(c => <option key={c} value={c}>{translateValue(c, language)}</option>)}
                 </select>
                 <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
               </div>
@@ -135,7 +138,7 @@ export default function RiskAnalysis() {
 
             {/* Season */}
             <div>
-              <label className="form-label">Season *</label>
+              <label className="form-label">{t('season')} *</label>
               <div className="relative">
                 <select
                   id="season-select"
@@ -143,8 +146,8 @@ export default function RiskAnalysis() {
                   onChange={e => handleChange('season', e.target.value)}
                   className="form-select pr-10"
                 >
-                  <option value="">Select Season</option>
-                  {SEASONS.map(s => <option key={s} value={s}>{s}</option>)}
+                  <option value="">{t('select_season')}</option>
+                  {SEASONS.map(s => <option key={s} value={s}>{translateValue(s, language)}</option>)}
                 </select>
                 <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
               </div>
@@ -166,8 +169,8 @@ export default function RiskAnalysis() {
             className="btn-primary w-full sm:w-auto py-3.5 px-8 text-base disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading
-              ? <><Loader2 className="w-5 h-5 animate-spin" /> Analyzing…</>
-              : <><Search className="w-5 h-5" /> Analyze Agricultural Risk</>
+              ? <><Loader2 className="w-5 h-5 animate-spin" /> {t('analyzing')}</>
+              : <><Search className="w-5 h-5" /> {t('analyze_risk')}</>
             }
           </button>
         </form>
@@ -187,17 +190,17 @@ export default function RiskAnalysis() {
                                                  'bg-green-50 border-green-200'}`}>
             <div>
               <p className="text-sm font-medium text-gray-500">
-                📍 {result.district}, {result.state} · {result.crop} · {result.season}
+                📍 {translateValue(result.district, language)}, {translateValue(result.state, language)} · {translateValue(result.crop, language)} · {translateValue(result.season, language)}
               </p>
               <h2 className="text-2xl font-bold text-gray-900 mt-1">
-                Risk Level:&nbsp;
+                {t('risk_level')}:&nbsp;
                 <span className={
                   result.risk_level === 'CRITICAL' ? 'text-red-600' :
                   result.risk_level === 'HIGH'     ? 'text-orange-600' :
                   result.risk_level === 'MEDIUM'   ? 'text-yellow-600' :
                                                      'text-green-600'
                 }>
-                  {result.risk_level}
+                  {translateValue(result.risk_level, language)}
                 </span>
               </h2>
             </div>
@@ -216,7 +219,7 @@ export default function RiskAnalysis() {
           {/* Gauge + Breakdown + Weather */}
           <div className="grid lg:grid-cols-3 gap-5">
             <div className="card flex flex-col items-center justify-center py-6">
-              <h3 className="font-semibold text-gray-800 mb-4">Overall Risk</h3>
+              <h3 className="font-semibold text-gray-800 mb-4">{t('overall_risk')}</h3>
               <RiskGauge score={result.risk_score} size={200} />
             </div>
             <RiskBreakdown breakdown={result.breakdown} />
@@ -227,17 +230,17 @@ export default function RiskAnalysis() {
 
           {/* Risk Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-            <RiskCard title="Weather"    score={result.breakdown?.weather    || 0} icon="🌦️" category="Weather"    compact />
-            <RiskCard title="Pest"       score={result.breakdown?.pest       || 0} icon="🐛" category="Pest"       compact />
-            <RiskCard title="Soil"       score={result.breakdown?.soil       || 0} icon="🌱" category="Soil"       compact />
-            <RiskCard title="Market"     score={result.breakdown?.market     || 0} icon="📈" category="Market"     compact />
-            <RiskCard title="Production" score={result.breakdown?.production || 0} icon="🌾" category="Production" compact />
+            <RiskCard title={t('weather')}    score={result.breakdown?.weather    || 0} icon="🌦️" category="Weather"    compact />
+            <RiskCard title={t('pest')}       score={result.breakdown?.pest       || 0} icon="🐛" category="Pest"       compact />
+            <RiskCard title={t('soil')}       score={result.breakdown?.soil       || 0} icon="🌱" category="Soil"       compact />
+            <RiskCard title={t('market')}     score={result.breakdown?.market     || 0} icon="📈" category="Market"     compact />
+            <RiskCard title={t('production')} score={result.breakdown?.production || 0} icon="🌾" category="Production" compact />
           </div>
 
           {/* Trend + Factors */}
           <div className="grid lg:grid-cols-2 gap-5">
             <div className="card">
-              <h3 className="font-semibold text-gray-800 mb-4">Risk Trend (6 months)</h3>
+              <h3 className="font-semibold text-gray-800 mb-4">{translateValue('Risk Trend (6 months)', language)}</h3>
               <ResponsiveContainer width="100%" height={200}>
                 <AreaChart data={result.trend || []}>
                   <defs>
@@ -251,7 +254,7 @@ export default function RiskAnalysis() {
                   <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
                   <Tooltip
                     contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb', fontSize: '12px' }}
-                    formatter={v => [`${v}`, 'Risk Score']}
+                    formatter={v => [`${v}`, translateValue('Risk Score', language)]}
                   />
                   <Area type="monotone" dataKey="score" stroke="#f97316" strokeWidth={2.5}
                         fill="url(#trendGrad)"
@@ -265,7 +268,7 @@ export default function RiskAnalysis() {
           {/* Recommendations */}
           <div className="card">
             <h3 className="font-semibold text-gray-800 mb-5">
-              Recommendations for {result.crop}
+              {t('recommendations')} - {translateValue(result.crop, language)}
             </h3>
             <div className="space-y-3">
               {(result.recommendations || []).map((rec, idx) => (

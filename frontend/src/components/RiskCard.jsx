@@ -1,7 +1,9 @@
-import React from 'react'
 import { getRiskMeta, classifyRisk } from '../utils/riskUtils'
+import { useLanguage } from '../context/LanguageContext'
+import { translateValue } from '../utils/translations'
 
 export default function RiskCard({ title, score, icon: Icon, category, compact = false }) {
+  const { language } = useLanguage()
   const level = classifyRisk(score)
   const meta  = getRiskMeta(level)
 
@@ -17,12 +19,12 @@ export default function RiskCard({ title, score, icon: Icon, category, compact =
             </div>
           )}
           <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{category || 'Risk'}</p>
-            <h3 className={`font-semibold text-gray-800 ${compact ? 'text-sm' : 'text-base'}`}>{title}</h3>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{translateValue(category || 'Risk', language)}</p>
+            <h3 className={`font-semibold text-gray-800 ${compact ? 'text-sm' : 'text-base'}`}>{translateValue(title, language)}</h3>
           </div>
         </div>
         <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${meta.bg} ${meta.text}`}>
-          {level}
+          {translateValue(level, language)}
         </span>
       </div>
 
