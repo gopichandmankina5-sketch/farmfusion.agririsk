@@ -3,6 +3,7 @@ import os
 import re
 import time
 import concurrent.futures
+# pyrefly: ignore [missing-import]
 from deep_translator import GoogleTranslator
 
 def is_english(text):

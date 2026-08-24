@@ -76,42 +76,42 @@ export default function Home() {
   return (
     <div className="animate-fade-in">
       {/* ── Hero ──────────────────────────────────────────────── */}
-      <section className="hero-gradient hero-pattern text-white py-20 px-6">
-        <div className="max-w-5xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-2 rounded-full text-sm font-medium mb-6 border border-white/20">
-            <Sprout className="w-4 h-4 text-agri-300" />
-            <span className="text-agri-100">{t('powered_by_ml')}</span>
+      <section className="relative px-6 py-24 sm:py-32 lg:px-8 text-center flex flex-col justify-center min-h-[70vh]">
+        <div className="absolute inset-0 bg-white/20 backdrop-blur-[2px] z-0 pointer-events-none"></div>
+        <div className="mx-auto max-w-4xl relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 backdrop-blur-md border border-green-200 text-green-700 text-sm font-medium mb-8">
+            <Sprout className="w-4 h-4" />
+            <span>{t('powered_by_ml')}</span>
           </div>
 
-          <h1 className="text-5xl sm:text-6xl font-extrabold mb-5 leading-tight tracking-tight">
-            Agri<span className="text-agri-400">Risk</span>
+          <h1 className="text-6xl sm:text-7xl font-extrabold tracking-tight text-gray-900 drop-shadow-sm mb-4">
+            Agri<span className="text-green-600">Risk</span>
           </h1>
-          <p className="text-xl sm:text-2xl font-semibold text-agri-100 mb-3">
+          <p className="text-2xl sm:text-3xl font-bold text-gray-800 drop-shadow-sm mb-6">
             {t('ai_powered_intel')}
           </p>
-          <p className="text-base text-agri-200 max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-lg leading-8 text-gray-800 font-medium bg-white/60 backdrop-blur-sm rounded-lg p-4 inline-block shadow-sm mb-10">
             {t('hero_desc')}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/risk-analysis" className="btn-primary text-base py-3.5 px-8 bg-agri-500 hover:bg-agri-400">
+            <Link to="/risk-analysis" className="bg-[#22c55e] hover:bg-[#16a34a] text-white px-6 py-3 rounded-md text-base font-semibold shadow-lg transition-colors flex items-center justify-center gap-2">
               <Activity className="w-5 h-5" />
               {t('analyze_now')}
             </Link>
             <Link to="/regional-risk"
-                  className="flex items-center gap-2 justify-center border-2 border-white/30 text-white hover:bg-white/10 
-                             font-semibold px-8 py-3.5 rounded-xl transition-all duration-200">
+                  className="bg-white/80 hover:bg-white text-gray-800 border border-gray-300 px-6 py-3 rounded-md text-base font-semibold shadow-sm transition-colors flex items-center justify-center gap-2 backdrop-blur-md">
               <Map className="w-5 h-5" />
               {t('explore_regional')}
             </Link>
           </div>
 
-          {/* Stats row */}
-          <div className="mt-14 grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-2xl mx-auto">
+          {/* Stats Section */}
+          <div className="mt-20 grid grid-cols-2 gap-8 sm:grid-cols-4 bg-white/70 backdrop-blur-md rounded-xl p-6 shadow-md">
             {stats.map(({ value, label }) => (
-              <div key={label} className="text-center">
-                <p className="text-3xl font-extrabold text-white">{value}</p>
-                <p className="text-sm text-agri-200 font-medium">{label}</p>
+              <div key={label} className="flex flex-col items-center">
+                <dt className="text-sm font-medium text-gray-600 mt-1">{label}</dt>
+                <dd className="text-3xl font-bold tracking-tight text-green-600">{value}</dd>
               </div>
             ))}
           </div>

@@ -21,7 +21,7 @@ export default function Navbar({ onMenuToggle, menuOpen }) {
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
 
   return (
-    <nav className="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-50">
+    <nav className="glass-panel border-b border-gray-100/50 shadow-sm sticky top-0 z-50">
       <div className="max-w-screen-xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}

@@ -19,7 +19,7 @@ export default function Sidebar() {
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
 
   return (
-    <aside className="w-64 min-h-screen bg-white border-r border-gray-100 flex-shrink-0 hidden xl:block">
+    <aside className="w-64 min-h-screen glass-panel border-r border-white/40 flex-shrink-0 hidden xl:block z-40">
       <div className="p-4 pt-6">
         {/* Section: Navigation */}
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3 px-4">

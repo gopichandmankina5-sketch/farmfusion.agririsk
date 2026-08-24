@@ -128,9 +128,30 @@
                     radial-gradient(circle at 80% 20%, rgba(134,239,172,0.1) 0%, transparent 50%);
 }
 
-/* ── Glass cards ─────────────────────────────────── */
-.glass {
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.15);
+/* ── Custom Theme Elements ───────────────────────── */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.text-glow {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.6);
+}
+
+.bg-fixed-custom {
+  position: relative;
+}
+
+.bg-fixed-custom::before {
+  content: "";
+  position: fixed;
+  top: -2%; left: -2%; right: -2%; bottom: -2%; /* Oversize to prevent blur edges from bleeding */
+  z-index: -1;
+  background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCBTySO7e-KJd_J9CvuKNAlBR4xjg36xvn5d5TNyyVuEq92monxXzG4PstR4OV6-xSesIvfxZxLkB2dIWNERsskgYOmSb_RA8kQd_sp01flK45p13p6bZKUSfvr8E2hS11aqks2K2I7xlQIJ5WYOAeMn3QmQKmb_I-RyAlMsj8Gbc_WNJPBChPUocilGUp3v-eB46sX_9SCL5V-8riCdIuhjpoLJyDEIu_pc_pTm0LcLVLDbSiGYkOsEg');
+  background-attachment: fixed;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  filter: blur(8px) brightness(0.85);
 }
