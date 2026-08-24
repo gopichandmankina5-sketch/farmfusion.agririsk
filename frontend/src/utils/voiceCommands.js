@@ -10,6 +10,9 @@ export const INTENTS = {
   REGIONAL_RISK: 'REGIONAL_RISK',
   RISK_ANALYSIS: 'RISK_ANALYSIS',
   DASHBOARD: 'DASHBOARD',
+  FOLLOW_UP_EXPLANATION: 'FOLLOW_UP_EXPLANATION',
+  FOLLOW_UP_RECOMMENDATION: 'FOLLOW_UP_RECOMMENDATION',
+  FOLLOW_UP_WEATHER_IMPACT: 'FOLLOW_UP_WEATHER_IMPACT',
   UNKNOWN: 'UNKNOWN'
 };
 
@@ -56,8 +59,23 @@ export const parseVoiceCommand = (text) => {
     return INTENTS.RISK_ANALYSIS;
   }
   
-  // Recommendations
-  if (hasAny(['recommendation', 'what should i do', 'సూచన', 'సూచనలు', 'సిఫార్సు', 'సిఫార్సులు', 'ఏం చేయాలి', 'பரிந்துரை', 'பரிந்துரைகள்', 'செய்ய வேண்டும்', 'सुझाव', 'सिफारिश', 'क्या करना'])) {
+  // Follow-up: Explanation (Why?)
+  if (hasAny(['why', 'ఎందుకు', 'ఏమిటి కారణం', 'ஏன்', 'எதனால்', 'क्यों', 'कारण'])) {
+    return INTENTS.FOLLOW_UP_EXPLANATION;
+  }
+
+  // Follow-up: Weather Impact
+  if (hasAny(['affect my crop', 'weather affect', 'వాన పడుతుందా', 'వాతావరణ ప్రభావం', 'வானிலை பாதிக்குமா', 'क्या मौसम प्रभावित करेगा', 'मौसम का प्रभाव'])) {
+    return INTENTS.FOLLOW_UP_WEATHER_IMPACT;
+  }
+
+  // Follow-up: Recommendation / Mitigation
+  if (hasAny(['what should i do', 'how to reduce', 'reduce it', 'ఏం చేయాలి', 'తగ్గించడానికి', 'என்ன செய்ய வேண்டும்', 'குறைக்க', 'क्या करना चाहिए', 'कम करने के लिए'])) {
+    return INTENTS.FOLLOW_UP_RECOMMENDATION;
+  }
+
+  // Recommendations (General fallback)
+  if (hasAny(['recommendation', 'సూచన', 'సూచనలు', 'సిఫార్సు', 'సిఫార్సులు', 'பரிந்துரை', 'பரிந்துரைகள்', 'सुझाव', 'सिफारिश'])) {
     return INTENTS.RECOMMENDATIONS;
   }
   

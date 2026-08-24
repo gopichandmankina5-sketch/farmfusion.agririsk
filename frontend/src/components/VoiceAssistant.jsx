@@ -25,6 +25,12 @@ export default function VoiceAssistant() {
   const [response, setResponse] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   
+  // Lightweight conversational context
+  const [conversationContext, setConversationContext] = useState({
+    lastIntent: null,
+    lastTopic: null,
+  });
+  
   const recognitionRef = useRef(null);
 
   // Stop recognition and speaking on unmount or close
@@ -56,6 +62,8 @@ export default function VoiceAssistant() {
     if (isVoiceSupported()) {
       setCurrentState(STATES.IDLE);
     }
+    // Optionally reset context on close if desired, but user said "do not reset after every message"
+    // Keeping it alive while the app runs is fine.
   };
 
   const startVoiceSession = () => {
@@ -87,10 +95,13 @@ export default function VoiceAssistant() {
     recognitionRef.current = recognition;
   };
 
-  const provideResponse = (text, targetLang) => {
+  const provideResponse = (text, targetLang, newContext = null) => {
     setResponse(text);
     speakResponse(text, targetLang || language);
     setCurrentState(STATES.IDLE);
+    if (newContext) {
+      setConversationContext(prev => ({ ...prev, ...newContext }));
+    }
   };
 
   const handleIntent = (text) => {
@@ -100,25 +111,57 @@ export default function VoiceAssistant() {
     console.log("[VOICE] Selected language:", language);
     console.log("[VOICE] Detected language:", detectedLang);
     console.log("[VOICE] Detected intent:", intent);
+    console.log("[VOICE] Current context:", conversationContext);
 
     const cachedRisk = window.__AGRIRISK_LAST_RISK__;
     const weather = cachedRisk?.weather_data;
 
     try {
+      // Handle Contextual Follow-ups First
+      if (intent === INTENTS.FOLLOW_UP_EXPLANATION) {
+        if (conversationContext.lastIntent === INTENTS.CROP_RISK) {
+          const mainFactor = cachedRisk?.breakdown?.weather > cachedRisk?.breakdown?.market ? 'weather conditions' : 'market conditions';
+          provideResponse(getVoiceResponse('EXPLANATION_CROP_RISK', detectedLang, { factor: mainFactor }), detectedLang);
+          return;
+        } else {
+          // Fallback if context is missing
+          provideResponse(getVoiceResponse('CONTEXT_MISSING', detectedLang), detectedLang);
+          return;
+        }
+      }
+      
+      if (intent === INTENTS.FOLLOW_UP_RECOMMENDATION) {
+        // Use existing recommendation UI/logic as fallback
+        provideResponse(getVoiceResponse('RECOMMENDATIONS', detectedLang), detectedLang);
+        navigate('/recommendations');
+        return;
+      }
+      
+      if (intent === INTENTS.FOLLOW_UP_WEATHER_IMPACT) {
+        if (conversationContext.lastTopic === 'WEATHER' || conversationContext.lastIntent === INTENTS.WEATHER_CURRENT) {
+          provideResponse(getVoiceResponse('WEATHER_IMPACT_ANALYSIS', detectedLang, { risk: Math.round(cachedRisk?.breakdown?.weather || 0) }), detectedLang);
+          return;
+        } else {
+           provideResponse(getVoiceResponse('CONTEXT_MISSING', detectedLang), detectedLang);
+           return;
+        }
+      }
+
+      // Existing standalone commands
       if (intent === INTENTS.DASHBOARD) {
-        provideResponse(getVoiceResponse('DASHBOARD', detectedLang), detectedLang);
+        provideResponse(getVoiceResponse('DASHBOARD', detectedLang), detectedLang, { lastIntent: intent, lastTopic: 'NAVIGATION' });
         navigate('/dashboard');
         
       } else if (intent === INTENTS.REGIONAL_RISK) {
-        provideResponse(getVoiceResponse('REGIONAL_RISK', detectedLang), detectedLang);
+        provideResponse(getVoiceResponse('REGIONAL_RISK', detectedLang), detectedLang, { lastIntent: intent, lastTopic: 'NAVIGATION' });
         navigate('/regional-risk');
         
       } else if (intent === INTENTS.RISK_ANALYSIS) {
-        provideResponse(getVoiceResponse('DASHBOARD', detectedLang), detectedLang); // same response as dashboard
+        provideResponse(getVoiceResponse('DASHBOARD', detectedLang), detectedLang, { lastIntent: intent, lastTopic: 'NAVIGATION' });
         navigate('/risk-analysis');
         
       } else if (intent === INTENTS.RECOMMENDATIONS || intent === INTENTS.IRRIGATION) {
-        provideResponse(getVoiceResponse('RECOMMENDATIONS', detectedLang), detectedLang);
+        provideResponse(getVoiceResponse('RECOMMENDATIONS', detectedLang), detectedLang, { lastIntent: intent, lastTopic: 'RECOMMENDATIONS' });
         navigate('/recommendations');
         
       } else if (intent === INTENTS.WEATHER_CURRENT || intent === INTENTS.WEATHER) {
@@ -129,35 +172,35 @@ export default function VoiceAssistant() {
             rain: weather.rainfall || 0,
             humidity: weather.humidity || 0,
             wind: weather.wind_speed || 0
-          }), detectedLang);
+          }), detectedLang, { lastIntent: intent, lastTopic: 'WEATHER' });
         } else {
           provideResponse(getVoiceResponse('WEATHER_CURRENT_UNAVAILABLE', detectedLang), detectedLang);
         }
 
       } else if (intent === INTENTS.WEATHER_TEMPERATURE) {
         if (weather && weather.temperature !== undefined) {
-          provideResponse(getVoiceResponse('WEATHER_TEMPERATURE', detectedLang, { temp: weather.temperature }), detectedLang);
+          provideResponse(getVoiceResponse('WEATHER_TEMPERATURE', detectedLang, { temp: weather.temperature }), detectedLang, { lastIntent: intent, lastTopic: 'WEATHER' });
         } else {
           provideResponse(getVoiceResponse('WEATHER_TEMPERATURE_UNAVAILABLE', detectedLang), detectedLang);
         }
         
       } else if (intent === INTENTS.WEATHER_RAIN) {
         if (weather && weather.rainfall !== undefined) {
-          provideResponse(getVoiceResponse('WEATHER_RAIN', detectedLang, { rain: weather.rainfall }), detectedLang);
+          provideResponse(getVoiceResponse('WEATHER_RAIN', detectedLang, { rain: weather.rainfall }), detectedLang, { lastIntent: intent, lastTopic: 'WEATHER' });
         } else {
           provideResponse(getVoiceResponse('WEATHER_RAIN_UNAVAILABLE', detectedLang), detectedLang);
         }
 
       } else if (intent === INTENTS.WEATHER_RISK) {
         if (cachedRisk?.breakdown?.weather !== undefined) {
-          provideResponse(getVoiceResponse('WEATHER_RISK', detectedLang, { risk: Math.round(cachedRisk.breakdown.weather) }), detectedLang);
+          provideResponse(getVoiceResponse('WEATHER_RISK', detectedLang, { risk: Math.round(cachedRisk.breakdown.weather) }), detectedLang, { lastIntent: intent, lastTopic: 'RISK' });
         } else {
           provideResponse(getVoiceResponse('WEATHER_RISK_UNAVAILABLE', detectedLang), detectedLang);
         }
 
       } else if (intent === INTENTS.CROP_RISK || intent === INTENTS.DISEASE_RISK) {
         if (cachedRisk && cachedRisk.risk_score !== undefined) {
-          provideResponse(getVoiceResponse('CROP_RISK', detectedLang, { risk: Math.round(cachedRisk.risk_score) }), detectedLang);
+          provideResponse(getVoiceResponse('CROP_RISK', detectedLang, { risk: Math.round(cachedRisk.risk_score) }), detectedLang, { lastIntent: INTENTS.CROP_RISK, lastTopic: 'RISK' });
         } else {
           provideResponse(getVoiceResponse('CROP_RISK_UNAVAILABLE', detectedLang), detectedLang);
         }

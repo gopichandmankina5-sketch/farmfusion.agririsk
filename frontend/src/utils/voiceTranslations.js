@@ -14,6 +14,9 @@ export const getVoiceResponse = (intent, lang, data = {}) => {
       WEATHER_RISK_UNAVAILABLE: 'Weather risk data is currently unavailable.',
       CROP_RISK: `Your current crop risk is ${data.risk} percent.`,
       CROP_RISK_UNAVAILABLE: 'Current risk data is unavailable. Please select a location and crop to analyze.',
+      EXPLANATION_CROP_RISK: `The current risk is primarily influenced by ${data.factor} identified in your analysis.`,
+      WEATHER_IMPACT_ANALYSIS: `Based on current weather, the weather risk impact on your crop is ${data.risk} out of 100.`,
+      CONTEXT_MISSING: 'I can help with that. Please ask about your crop risk or weather first.',
       UNKNOWN: "I didn't understand that command. You can ask about crop risk, weather, recommendations, or say 'Open dashboard'.",
       ERROR: 'Sorry, an error occurred while processing your command.'
     },
@@ -31,6 +34,9 @@ export const getVoiceResponse = (intent, lang, data = {}) => {
       WEATHER_RISK_UNAVAILABLE: 'వాతావరణ ప్రమాద సమాచారం ప్రస్తుతం అందుబాటులో లేదు.',
       CROP_RISK: `మీ పంట ప్రమాద స్థాయి ${data.risk} శాతం.`,
       CROP_RISK_UNAVAILABLE: 'ప్రమాద సమాచారం అందుబాటులో లేదు.',
+      EXPLANATION_CROP_RISK: `ప్రధానంగా ప్రస్తుత ${data.factor === 'weather conditions' ? 'వాతావరణ పరిస్థితులు' : 'మార్కెట్ పరిస్థితులు'} కారణంగా ప్రమాద స్థాయి ప్రభావితం చేయబడింది.`,
+      WEATHER_IMPACT_ANALYSIS: `ప్రస్తుత వాతావరణం ఆధారంగా, మీ పంటపై వాతావరణ ప్రమాద ప్రభావం 100 కి ${data.risk}.`,
+      CONTEXT_MISSING: 'నేను సహాయం చేయగలను. దయచేసి ముందుగా మీ పంట ప్రమాదం లేదా వాతావరణం గురించి అడగండి.',
       UNKNOWN: "ఈ ఆదేశాన్ని నేను అర్థం చేసుకోలేకపోయాను. పంట ప్రమాదం, వాతావరణం, సూచనలు లేదా డాష్బోర్డ్ గురించి అడగవచ్చు.",
       ERROR: 'క్షమించండి, లోపం జరిగింది.'
     },
@@ -48,6 +54,9 @@ export const getVoiceResponse = (intent, lang, data = {}) => {
       WEATHER_RISK_UNAVAILABLE: 'வானிலை ஆபத்து தரவு தற்போது கிடைக்கவில்லை.',
       CROP_RISK: `உங்கள் பயிரின் ஆபத்து ${data.risk} சதவீதம்.`,
       CROP_RISK_UNAVAILABLE: 'ஆபத்து தரவு தற்போது கிடைக்கவில்லை.',
+      EXPLANATION_CROP_RISK: `தற்போதைய ஆபத்து முக்கியமாக ${data.factor === 'weather conditions' ? 'வானிலை நிலைமைகளால்' : 'சந்தை நிலைமைகளால்'} பாதிக்கப்பட்டுள்ளது.`,
+      WEATHER_IMPACT_ANALYSIS: `தற்போதைய வானிலை அடிப்படையில், உங்கள் பயிரில் வானிலை ஆபத்து தாக்கம் 100 க்கு ${data.risk}.`,
+      CONTEXT_MISSING: 'நான் உதவ முடியும். முதலில் உங்கள் பயிர் ஆபத்து அல்லது வானிலை பற்றி கேட்கவும்.',
       UNKNOWN: "இந்த கட்டளையை என்னால் புரிந்து கொள்ள முடியவில்லை. பயிர் ஆபத்து, வானிலை, பரிந்துரைகள் பற்றி கேட்கலாம்.",
       ERROR: 'மன்னிக்கவும், பிழை ஏற்பட்டுள்ளது.'
     },
@@ -64,9 +73,12 @@ export const getVoiceResponse = (intent, lang, data = {}) => {
       WEATHER_RISK: `वर्तमान मौसम जोखिम 100 में से ${data.risk} है।`,
       WEATHER_RISK_UNAVAILABLE: 'मौसम जोखिम डेटा वर्तमान में अनुपलब्ध है।',
       CROP_RISK: `आपकी फसल का जोखिम ${data.risk} प्रतिशत है।`,
-      CROP_RISK_UNAVAILABLE: 'जोखिम डेटा अनुपलब्ध है।',
-      UNKNOWN: "मैं उस कमांड को समझ नहीं पाया। आप फसल जोखिम, मौसम, सुझाव के बारे में पूछ सकते हैं।",
-      ERROR: 'क्षमा करें, एक त्रुटि हुई।'
+      CROP_RISK_UNAVAILABLE: 'जोखिम डेटा वर्तमान में उपलब्ध नहीं है।',
+      EXPLANATION_CROP_RISK: `वर्तमान जोखिम मुख्य रूप से विश्लेषण में पहचाने गए ${data.factor === 'weather conditions' ? 'मौसम की स्थिति' : 'बाजार की स्थिति'} से प्रभावित है।`,
+      WEATHER_IMPACT_ANALYSIS: `वर्तमान मौसम के आधार पर, आपकी फसल पर मौसम के जोखिम का प्रभाव 100 में से ${data.risk} है।`,
+      CONTEXT_MISSING: 'मैं इसमें आपकी मदद कर सकता हूं। कृपया पहले अपनी फसल के जोखिम या मौसम के बारे में पूछें।',
+      UNKNOWN: "मुझे वह कमांड समझ में नहीं आया। आप फसल जोखिम, मौसम, सुझाव के बारे में पूछ सकते हैं।",
+      ERROR: 'क्षमा करें, त्रुटि हुई।'
     }
   };
 
