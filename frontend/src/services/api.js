@@ -16,7 +16,12 @@ api.interceptors.request.use(
 
 // ── Response interceptor ─────────────────────────────────────────────────────
 api.interceptors.response.use(
-  (response) => response.data,
+  (response) => {
+    if (response.config.url === '/risk/analyze' || response.config.url.endsWith('/risk/analyze')) {
+      window.__AGRIRISK_LAST_RISK__ = response.data;
+    }
+    return response.data;
+  },
   (error) => {
     const message =
       error.response?.data?.error ||

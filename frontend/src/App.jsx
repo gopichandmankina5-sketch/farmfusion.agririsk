@@ -8,6 +8,7 @@ import Dashboard       from './pages/Dashboard'
 import RiskAnalysis    from './pages/RiskAnalysis'
 import RegionalRisk    from './pages/RegionalRisk'
 import Recommendations from './pages/Recommendations'
+import VoiceAssistant  from './components/VoiceAssistant'
 
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -40,6 +41,7 @@ export default function App() {
               </Routes>
             </main>
           </div>
+          <VoiceAssistant />
         </div>
       </BrowserRouter>
   )
