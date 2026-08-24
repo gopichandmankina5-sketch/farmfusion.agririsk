@@ -15,15 +15,15 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="h-screen overflow-hidden bg-fixed-custom text-gray-800 flex flex-col">
           <Navbar onMenuToggle={() => setMenuOpen(m => !m)} menuOpen={menuOpen} />
 
-          <div className="flex flex-1">
+          <div className="flex flex-1 overflow-hidden">
             {/* Sidebar – desktop only */}
             <Sidebar />
 
             {/* Main content */}
-            <main className="flex-1 overflow-auto">
+            <main className="flex-1 overflow-y-auto relative">
               <Routes>
                 <Route path="/"                element={<Home />} />
                 <Route path="/dashboard"       element={<Dashboard />} />

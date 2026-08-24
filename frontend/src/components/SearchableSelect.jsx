@@ -82,7 +82,7 @@ export default function SearchableSelect({
             <input
               ref={inputRef}
               type="text"
-              className="w-full text-sm outline-none bg-transparent placeholder-gray-400"
+              className="w-full text-sm outline-none bg-transparent placeholder-gray-400 text-gray-900"
               placeholder="Search..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}

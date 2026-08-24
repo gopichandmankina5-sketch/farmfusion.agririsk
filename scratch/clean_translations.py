@@ -2,6 +2,7 @@ import json
 import os
 import re
 import time
+# pyrefly: ignore [missing-import]
 from deep_translator import GoogleTranslator
 
 def is_english(text):
