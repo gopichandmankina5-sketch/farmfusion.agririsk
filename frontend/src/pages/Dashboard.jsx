@@ -15,6 +15,8 @@ import WeatherCard from '../components/WeatherCard'
 import RegionalMap from '../components/RegionalMap'
 import RecommendationCard from '../components/RecommendationCard'
 import Loading from '../components/Loading'
+import { useLanguage } from '../context/LanguageContext'
+import { translateValue } from '../utils/translations'
 
 // Default example data shown on dashboard load
 const DEFAULT_PAYLOAD = {
@@ -22,6 +24,7 @@ const DEFAULT_PAYLOAD = {
 }
 
 export default function Dashboard() {
+  const { t, language } = useLanguage()
   const [payload,      setPayload]      = useState(DEFAULT_PAYLOAD)
   const [data,         setData]         = useState(null)
   const [regionalData, setRegionalData] = useState([])
@@ -64,13 +67,13 @@ export default function Dashboard() {
   if (error) return (
     <div className="p-8 text-center animate-fade-in">
       <AlertTriangle className="w-12 h-12 text-orange-400 mx-auto mb-4" />
-      <h3 className="font-semibold text-gray-800 mb-2">Dashboard Loading Error</h3>
+      <h3 className="font-semibold text-gray-800 mb-2">{t('dashboard_loading_error')}</h3>
       <p className="text-gray-500 text-sm mb-5">{error}</p>
       <p className="text-sm text-gray-400 mb-4">
-        Ensure the backend is running and all API keys are configured.
+        {t('ensure_backend')}
       </p>
       <button onClick={fetchDashboard} className="btn-primary">
-        <RefreshCw className="w-4 h-4" /> Retry
+        <RefreshCw className="w-4 h-4" /> {t('retry')}
       </button>
     </div>
   )
@@ -93,9 +96,9 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('dashboard')}</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Overview: {payload.crop} · {payload.district}, {payload.state} · {payload.season}
+            {t('overview')} {translateValue(payload.crop, language)} · {translateValue(payload.district, language)}, {translateValue(payload.state, language)} · {translateValue(payload.season, language)}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -104,16 +107,16 @@ export default function Dashboard() {
             onChange={handleLocationChange}
             className="form-select text-sm py-2 pl-3 pr-8 rounded-lg border-gray-200 shadow-sm"
           >
-             <option value="Madurai">Madurai, Tamil Nadu</option>
-             <option value="Chennai">Chennai, Tamil Nadu</option>
-             <option value="Coimbatore">Coimbatore, Tamil Nadu</option>
-             <option value="Vijayawada">Vijayawada, Andhra Pradesh</option>
+             <option value="Madurai">{translateValue('Madurai', language)}, {translateValue('Tamil Nadu', language)}</option>
+             <option value="Chennai">{translateValue('Chennai', language)}, {translateValue('Tamil Nadu', language)}</option>
+             <option value="Coimbatore">{translateValue('Coimbatore', language)}, {translateValue('Tamil Nadu', language)}</option>
+             <option value="Vijayawada">{translateValue('Vijayawada', language)}, {translateValue('Andhra Pradesh', language)}</option>
           </select>
           <button onClick={fetchDashboard} className="btn-ghost flex items-center gap-2">
-            <RefreshCw className="w-4 h-4" /> Refresh
+            <RefreshCw className="w-4 h-4" /> {t('refresh')}
           </button>
           <Link to="/risk-analysis" className="btn-primary text-sm py-2 px-4">
-            <Activity className="w-4 h-4" /> New Analysis
+            <Activity className="w-4 h-4" /> {t('new_analysis')}
           </Link>
         </div>
       </div>
@@ -122,7 +125,7 @@ export default function Dashboard() {
       <div className="grid lg:grid-cols-3 gap-5">
         {/* Overall Risk Gauge */}
         <div className="card flex flex-col items-center justify-center py-6">
-          <h3 className="font-semibold text-gray-800 mb-5">Overall Risk Score</h3>
+          <h3 className="font-semibold text-gray-800 mb-5">{t('overall_risk_score')}</h3>
           <RiskGauge score={risk_score} breakdown={breakdown} size={200} />
         </div>
 
@@ -147,7 +150,7 @@ export default function Dashboard() {
         {/* Historical Trend */}
         <div className="card">
           <div className="flex items-center justify-between mb-5">
-            <h3 className="font-semibold text-gray-800">Risk Trend (6 months)</h3>
+            <h3 className="font-semibold text-gray-800">{translateValue('Risk Trend (6 months)', language)}</h3>
             <TrendingUp className="w-4 h-4 text-agri-600" />
           </div>
           <ResponsiveContainer width="100%" height={200}>
@@ -163,7 +166,7 @@ export default function Dashboard() {
               <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip
                 contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb', fontSize: '12px' }}
-                formatter={(v) => [`${v}`, 'Risk Score']}
+                formatter={(v) => [`${v}`, translateValue('Risk Score', language)]}
               />
               <Area type="monotone" dataKey="score" stroke="#16a34a" strokeWidth={2.5}
                     fill="url(#riskGrad)" dot={{ r: 4, fill: '#16a34a', strokeWidth: 2, stroke: 'white' }} />
@@ -181,9 +184,9 @@ export default function Dashboard() {
       {/* Recommendations */}
       <div className="card">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="font-semibold text-gray-800">Recommendations</h3>
+          <h3 className="font-semibold text-gray-800">{t('recommendations')}</h3>
           <Link to="/recommendations" className="text-sm text-agri-600 hover:underline font-medium">
-            View all →
+            {t('view_all')}
           </Link>
         </div>
         <div className="space-y-3">

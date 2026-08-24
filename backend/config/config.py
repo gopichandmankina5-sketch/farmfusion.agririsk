@@ -14,6 +14,9 @@ class Config:
     # CORS
     CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000")
 
+    # Translation
+    LIBRETRANSLATE_URL = os.environ.get("LIBRETRANSLATE_URL", "http://localhost:5001")
+
     # Paths
     BASE_DIR       = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     DATA_DIR       = os.path.join(BASE_DIR, "data")

@@ -3,6 +3,8 @@ import { Lightbulb, Filter, RefreshCw } from 'lucide-react'
 import apiService from '../services/api'
 import RecommendationCard from '../components/RecommendationCard'
 import Loading from '../components/Loading'
+import { useLanguage } from '../context/LanguageContext'
+import { translateValue } from '../utils/translations'
 
 const PRIORITY_OPTIONS = ['All', 'critical', 'high', 'medium', 'low']
 const CATEGORY_OPTIONS = ['All', 'weather', 'pest', 'soil', 'market', 'production']
@@ -22,6 +24,7 @@ const DEFAULT_RECS = [
 ]
 
 export default function Recommendations() {
+  const { t, language } = useLanguage()
   const [recs,     setRecs]     = useState(DEFAULT_RECS)
   const [priority, setPriority] = useState('All')
   const [category, setCategory] = useState('All')
@@ -51,14 +54,14 @@ export default function Recommendations() {
     <div className="p-5 max-w-5xl mx-auto space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Recommendations</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('recommendations')}</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Data-driven mitigation strategies ranked by priority.
+            {t('data_driven_mitigation')}
           </p>
         </div>
         <button onClick={refresh} disabled={loading} className="btn-ghost flex items-center gap-2">
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
+          {t('refresh')}
         </button>
       </div>
 
@@ -66,12 +69,12 @@ export default function Recommendations() {
       <div className="card p-4">
         <div className="flex flex-wrap gap-4 items-center">
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Filter className="w-4 h-4" /> Filters:
+            <Filter className="w-4 h-4" /> {t('filters')}
           </div>
 
           {/* Priority */}
           <div>
-            <span className="text-xs font-semibold text-gray-400 mr-2">Priority</span>
+            <span className="text-xs font-semibold text-gray-400 mr-2">{t('priority')}</span>
             <div className="inline-flex gap-1 flex-wrap">
               {PRIORITY_OPTIONS.map(p => (
                 <button
@@ -83,7 +86,7 @@ export default function Recommendations() {
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                 >
-                  {p.charAt(0).toUpperCase() + p.slice(1)}
+                  {p === 'All' ? t('all') : translateValue(p, language)}
                 </button>
               ))}
             </div>
@@ -91,7 +94,7 @@ export default function Recommendations() {
 
           {/* Category */}
           <div>
-            <span className="text-xs font-semibold text-gray-400 mr-2">Category</span>
+            <span className="text-xs font-semibold text-gray-400 mr-2">{t('category')}</span>
             <div className="inline-flex gap-1 flex-wrap">
               {CATEGORY_OPTIONS.map(c => (
                 <button
@@ -103,19 +106,19 @@ export default function Recommendations() {
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                 >
-                  {c.charAt(0).toUpperCase() + c.slice(1)}
+                  {c === 'All' ? t('all') : translateValue(c, language)}
                 </button>
               ))}
             </div>
           </div>
 
           <span className="text-xs text-gray-400 ml-auto">
-            {filtered.length} recommendations
+            {filtered.length} {t('recommendations_count')}
           </span>
         </div>
       </div>
 
-      {loading && <Loading message="Loading recommendations…" />}
+      {loading && <Loading message={t('loading_recommendations')} />}
 
       {!loading && (
         <div className="space-y-3">
@@ -124,7 +127,7 @@ export default function Recommendations() {
           )) : (
             <div className="card text-center py-12 text-gray-400">
               <Lightbulb className="w-10 h-10 mx-auto mb-3 opacity-30" />
-              <p>No recommendations match the selected filters.</p>
+              <p>{t('no_recs_match')}</p>
             </div>
           )}
         </div>

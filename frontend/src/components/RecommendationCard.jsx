@@ -1,6 +1,9 @@
 import React from 'react'
 import { getPriorityMeta } from '../utils/riskUtils'
 import { AlertCircle, Info, AlertTriangle, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react'
+import { useLanguage } from '../context/LanguageContext'
+import { translateValue } from '../utils/translations'
+import { recommendationTranslations } from '../utils/recommendationTranslations'
 
 const PriorityIcon = ({ priority }) => {
   const icons = {
@@ -13,8 +16,16 @@ const PriorityIcon = ({ priority }) => {
 }
 
 export default function RecommendationCard({ rec, index }) {
+  const { language } = useLanguage()
   const [expanded, setExpanded] = React.useState(index < 3)
   const meta = getPriorityMeta(rec.priority)
+  
+  const recData = recommendationTranslations[rec.id]?.[language] || 
+                  recommendationTranslations[rec.id]?.['en'] || 
+                  { title: rec.title, detail: rec.detail };
+
+  const translatedTitle = recData.title;
+  const translatedDetail = recData.detail;
 
   return (
     <div
@@ -28,17 +39,17 @@ export default function RecommendationCard({ rec, index }) {
             <PriorityIcon priority={rec.priority} />
           </span>
           <div>
-            <p className={`font-semibold text-sm ${meta.color}`}>{rec.title}</p>
+            <p className={`font-semibold text-sm ${meta.color}`}>{translatedTitle}</p>
             {expanded && (
               <p className="text-sm text-gray-600 mt-1.5 leading-relaxed animate-fade-in">
-                {rec.detail}
+                {translatedDetail}
               </p>
             )}
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <span className={`text-xs font-bold px-2 py-0.5 rounded-full uppercase ${meta.bg} ${meta.color} border ${meta.border}`}>
-            {rec.priority}
+            {translateValue(rec.priority, language)}
           </span>
           {expanded
             ? <ChevronUp className="w-4 h-4 text-gray-400" />

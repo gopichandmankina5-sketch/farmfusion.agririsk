@@ -1,24 +1,30 @@
 import React from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { getCategoryColor } from '../utils/riskUtils'
+import { useLanguage } from '../context/LanguageContext'
+import { translateValue } from '../utils/translations'
 
 export default function RiskFactors({ factors = [] }) {
+  const { language } = useLanguage()
   if (!factors.length) return null
 
-  const chartData = factors.map(f => ({
-    name: f.name.length > 22 ? f.name.slice(0, 22) + '…' : f.name,
-    fullName: f.name,
-    impact: Math.round(f.impact),
-    category: f.category,
-    color: getCategoryColor(f.category),
-  }))
+  const chartData = factors.map(f => {
+    const translatedName = String(translateValue(f.name, language))
+    return {
+      name: translatedName.length > 22 ? translatedName.slice(0, 22) + '…' : translatedName,
+      fullName: translatedName,
+      impact: Math.round(f.impact),
+      category: f.category,
+      color: getCategoryColor(f.category),
+    }
+  })
 
   return (
     <div className="card animate-fade-in">
       <div className="flex items-center justify-between mb-5">
-        <h3 className="font-semibold text-gray-800">Contributing Factors</h3>
+        <h3 className="font-semibold text-gray-800">{translateValue('Contributing Factors', language)}</h3>
         <span className="text-xs text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full">
-          By impact score
+          {translateValue('By impact score', language)}
         </span>
       </div>
 
@@ -50,8 +56,8 @@ export default function RiskFactors({ factors = [] }) {
                 style={{ backgroundColor: getCategoryColor(f.category) }}
               />
               <div>
-                <p className="text-sm font-medium text-gray-800">{f.name}</p>
-                <p className="text-xs text-gray-400 capitalize">{f.category} risk</p>
+                <p className="text-sm font-medium text-gray-800">{translateValue(f.name, language)}</p>
+                <p className="text-xs text-gray-400 capitalize">{translateValue(`${f.category} Risk`, language)}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">

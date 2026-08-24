@@ -1,7 +1,10 @@
 import React from 'react'
 import { Sprout } from 'lucide-react'
+import { useLanguage } from '../context/LanguageContext'
 
-export default function Loading({ message = 'Analyzing agricultural data…' }) {
+export default function Loading({ message }) {
+  const { t } = useLanguage()
+  const displayMessage = message || t('analyzing_data') || 'Analyzing agricultural data…'
   return (
     <div className="flex flex-col items-center justify-center py-20 gap-5">
       <div className="relative">
@@ -11,8 +14,8 @@ export default function Loading({ message = 'Analyzing agricultural data…' }) 
         </div>
       </div>
       <div className="text-center">
-        <p className="text-gray-700 font-semibold">{message}</p>
-        <p className="text-sm text-gray-400 mt-1">Running ML models and risk calculations…</p>
+        <p className="text-gray-700 font-semibold">{displayMessage}</p>
+        <p className="text-sm text-gray-400 mt-1">{t('running_ml_models') || 'Running ML models and risk calculations…'}</p>
       </div>
       {/* Animated dots */}
       <div className="flex gap-1.5">
