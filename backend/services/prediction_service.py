@@ -72,51 +72,48 @@ def predict_risk_score(data: dict) -> float:
 # ── Individual Component Predictions ─────────────────────────────────────────
 
 def predict_pest_risk(data: dict) -> float:
-    # Model deleted per user constraints; fallback only
+    bundle = ModelCache.get("pest_model")
+    if bundle and "model" in bundle:
+        cols = bundle.get("feature_columns", [])
+        X = pd.DataFrame([{c: float(data.get(c, 0)) if isinstance(data.get(c, 0), (int, float, np.number, bool)) else data.get(c, "") for c in cols}])
+        score = float(bundle["model"].predict(X)[0])
+        return round(max(0, min(100, score)), 1)
+        
     from backend.utils.risk_calculator import calc_pest_risk
     return calc_pest_risk(data.get("pest_probability", 0), data.get("disease_probability", 0))
 
 def predict_soil_risk(data: dict) -> float:
     bundle = ModelCache.get("soil_model")
-    from backend.utils.risk_calculator import calc_soil_risk
     if bundle and "model" in bundle:
-        from backend.utils.feature_engineering import CROP_BASE_YIELD
-        crop_proxy = CROP_BASE_YIELD.get(data.get("crop", "Rice"), 2000)
-        data_to_pred = {
-            "Temparature": data.get("avg_temperature", 28),
-            "Humidity": data.get("avg_humidity", 65),
-            "Moisture": data.get("soil_moisture", 45),
-            "crop_proxy": crop_proxy
-        }
-        X = pd.DataFrame([data_to_pred])
-        preds = bundle["model"].predict(X)[0] # Returns [Nitrogen, Potassium, Phosphorous]
-        return calc_soil_risk(data.get("soil_ph", 6.5), float(preds[0]), float(preds[2]), float(preds[1]), float(data_to_pred["Moisture"]))
-    
+        cols = bundle.get("feature_columns", [])
+        X = pd.DataFrame([{c: float(data.get(c, 0)) if isinstance(data.get(c, 0), (int, float, np.number, bool)) else data.get(c, "") for c in cols}])
+        score = float(bundle["model"].predict(X)[0])
+        return round(max(0, min(100, score)), 1)
+        
+    from backend.utils.risk_calculator import calc_soil_risk
     return calc_soil_risk(data.get("soil_ph", 6.5), data.get("nitrogen", 100), data.get("phosphorus", 30), data.get("potassium", 100), data.get("soil_moisture", 45))
 
 def predict_yield_risk(data: dict) -> float:
     bundle = ModelCache.get("yield_model")
+    if bundle and "model" in bundle:
+        cols = bundle.get("feature_columns", [])
+        X = pd.DataFrame([{c: float(data.get(c, 0)) if isinstance(data.get(c, 0), (int, float, np.number, bool)) else data.get(c, "") for c in cols}])
+        score = float(bundle["model"].predict(X)[0])
+        return round(max(0, min(100, score)), 1)
+        
     from backend.utils.risk_calculator import calc_production_risk
     from backend.utils.feature_engineering import CROP_BASE_YIELD
     base = CROP_BASE_YIELD.get(data.get("crop","Rice"), 2000)
-
-    if bundle and "model" in bundle:
-        data_to_pred = {
-            "Area": data.get("area", 1000),
-            "Annual_Rainfall": data.get("avg_rainfall", 50) * 365,
-            "Fertilizer": data.get("nitrogen", 100) + data.get("phosphorus", 30) + data.get("potassium", 100),
-            "Pesticide": data.get("pest_probability", 0.5) * 1000,
-            "season_enc": data.get("season_enc", 0),
-            "base_yield": base
-        }
-        X = pd.DataFrame([data_to_pred])
-        predicted_yield = float(bundle["model"].predict(X)[0])
-        return calc_production_risk(predicted_yield, base)
-    
     return calc_production_risk(data.get("yield", 2000), base)
 
 def predict_market_risk(data: dict) -> float:
-    # Model deleted per user constraints; fallback only
+    bundle = ModelCache.get("market_model")
+    if bundle and "model" in bundle:
+        cols = bundle.get("feature_columns", [])
+        X = pd.DataFrame([{c: float(data.get(c, 0)) if isinstance(data.get(c, 0), (int, float, np.number, bool)) else data.get(c, "") for c in cols}])
+        score = float(bundle["model"].predict(X)[0])
+        return round(max(0, min(100, score)), 1)
+        
     from backend.utils.risk_calculator import calc_market_risk
     from backend.utils.feature_engineering import CROP_BASE_PRICE
     base = CROP_BASE_PRICE.get(data.get("crop","Rice"), 2500)

@@ -120,6 +120,21 @@ export default function RiskAnalysis() {
     }))
   }
 
+  useEffect(() => {
+    window.__AGRIRISK_FORM_CONTROLS__ = {
+      handleChange,
+      handleAnalyze: () => {
+        const btn = document.getElementById('analyze-btn');
+        if (btn) btn.click();
+      },
+      form,
+      districts: districts.map(d => d.id)
+    };
+    return () => {
+      delete window.__AGRIRISK_FORM_CONTROLS__;
+    };
+  }, [form, districts]);
+
   const handleAnalyze = async (e) => {
     e.preventDefault()
     if (!form.state || !form.district || !form.crop || !form.season) {

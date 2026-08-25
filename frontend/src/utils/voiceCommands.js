@@ -1,4 +1,10 @@
+import { getStateList } from '../i18n/stateTranslations';
+import districtTranslations from '../i18n/districtTranslations';
+import { districtsByState } from '../data/indiaData';
+import { getAgricultureList } from '../i18n/agricultureTranslations';
+
 export const INTENTS = {
+  FORM_CONTROL: 'FORM_CONTROL',
   GREETING: 'GREETING',
   GENERAL_HELP: 'GENERAL_HELP',
   CROP_RISK: 'CROP_RISK',
@@ -33,10 +39,106 @@ export const detectSpeechLanguage = (text, defaultLang) => {
   return defaultLang;
 };
 
+// ─── District matching helpers ─────────────────────────────────────────────
+
+// Strips common command words so we isolate the actual district/season name.
+const COMMAND_WORDS_RE = /\b(select|choose|set|district|season|crop|state|to)\b/gi;
+const stripCommandWords = (text) =>
+  text.replace(COMMAND_WORDS_RE, ' ').replace(/\s+/g, ' ').trim();
+
+// Normalize a name for fuzzy comparison.
+// Lowercases, collapses spaces, removes non-word non-Unicode chars.
+// Preserves Telugu/Tamil/Hindi Unicode characters.
+const normalizeName = (s) => {
+  if (!s) return '';
+  return s
+    .normalize('NFC')
+    .toLowerCase()
+    .replace(/[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/g, '')  // strip ASCII punctuation, keep Unicode letters
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
+
+// Quick character-sequence similarity (0..1) for ASR variation tolerance.
+// "ananthapur" vs "anantapur" → ~0.94.  No external libraries needed.
+const similarity = (a, b) => {
+  if (!a || !b) return 0;
+  if (a === b) return 1;
+  const [longer, shorter] = a.length >= b.length ? [a, b] : [b, a];
+  if (longer.length === 0) return 1;
+  let matches = 0, j = 0;
+  for (let i = 0; i < shorter.length; i++) {
+    while (j < longer.length && longer[j] !== shorter[i]) j++;
+    if (j < longer.length) { matches++; j++; }
+  }
+  return matches / longer.length;
+};
+
+/**
+ * Match a spoken text against a list of candidate district objects.
+ * Returns the best { id, confidence } or null.
+ * candidateDistricts: [{ id: string, names: { en, hi, te, ta } }]
+ */
+const matchDistrictFromList = (spokenNormalized, candidateDistricts, logLabel) => {
+  if (!candidateDistricts || candidateDistricts.length === 0) return null;
+
+  const spoken = spokenNormalized;
+  const spokenStripped = normalizeName(stripCommandWords(spokenNormalized));
+  console.log(`[AgriRisk Voice] DISTRICT CANDIDATES (${logLabel}):`, candidateDistricts.map(d => d.id));
+
+  let best = null;
+  let bestScore = 0;
+
+  for (const district of candidateDistricts) {
+    const rawNames = Object.values(district.names || {}).filter(Boolean);
+    for (const rawName of rawNames) {
+      const normName = normalizeName(rawName);
+      if (!normName || normName.length < 2) continue;
+
+      // 1. Exact substring: spoken sentence contains the full district name.
+      if (spoken.includes(normName)) {
+        const score = 0.95 + normName.length * 0.001;
+        if (score > bestScore) { bestScore = score; best = district; }
+        continue;
+      }
+      // 2. Stripped spoken contains district name.
+      if (spokenStripped && spokenStripped.includes(normName)) {
+        const score = 0.92 + normName.length * 0.001;
+        if (score > bestScore) { bestScore = score; best = district; }
+        continue;
+      }
+      // 3. District name contains stripped spoken (user said just the district).
+      if (spokenStripped && normName.includes(spokenStripped) && spokenStripped.length >= 3) {
+        const score = 0.75;
+        if (score > bestScore) { bestScore = score; best = district; }
+        continue;
+      }
+      // 4. Fuzzy similarity for ASR spelling variations (≥80% match required).
+      if (spokenStripped && spokenStripped.length >= 3) {
+        const sim = similarity(spokenStripped, normName);
+        if (sim >= 0.80 && sim > bestScore) { bestScore = sim; best = district; }
+      }
+    }
+  }
+
+  if (best && bestScore >= 0.75) {
+    console.log(`[AgriRisk Voice] DISTRICT MATCH (${logLabel}): "${spokenNormalized}" → ${best.id} (confidence=${bestScore.toFixed(2)})`);
+    return { id: best.id, confidence: bestScore };
+  }
+  return null;
+};
+
 export const parseVoiceCommand = (text, context = {}) => {
+
   if (!text) return INTENTS.UNKNOWN;
+
+  // context.currentState = currently selected state ID (e.g. 'tamil_nadu')
+  // context.availableDistricts = district objects from window.__AGRIRISK_FORM_CONTROLS__.districts
+  //   passed in as IDs — we'll resolve to full objects using indiaData
+  const currentStateId = context.currentState || null;
   
-  // 1. Normalize
+  // 1. Normalize — preserve Unicode, strip punctuation, lowercase
   const normalizedText = text
     .normalize('NFC')
     .replace(/[?!.,।;]/g, '')
@@ -44,8 +146,8 @@ export const parseVoiceCommand = (text, context = {}) => {
     .trim()
     .toLowerCase();
 
-  console.log("[VOICE] Raw transcript:", text);
-  console.log("[VOICE] Normalized transcript:", normalizedText);
+  console.log('[AgriRisk Voice] RAW FINAL TRANSCRIPT:', text);
+  console.log('[AgriRisk Voice] NORMALIZED TRANSCRIPT:', normalizedText);
   
   // 2. Helper functions for matching
   const has = (word) => normalizedText.includes(word.toLowerCase());
@@ -61,6 +163,85 @@ export const parseVoiceCommand = (text, context = {}) => {
   // ==========================================
   // DOMAIN INTENTS (Navigation vs Conversational)
   // ==========================================
+
+  // Form Controls (Select State, District, Crop, Season)
+  const isAction = hasAnyExactWord(['select', 'choose', 'set', 'எంచుకో', 'చూపించు', 'चुनो', 'चुने', 'தேர்வு செய்', 'தேர்ந்தெடு']) || hasAny(['ఎంచుకో', 'चुनें']);
+  const isAnalyze = hasAny(['analyze', 'analyse', 'విశ్లేషించు', 'విశ్లేషణ చేయి', 'विश्लेषण करो', 'பகுப்பாய்வு செய்']) && !hasAny(['what', 'how', 'why', 'ఏమిటి', 'எப்படி']);
+
+  if (isAction || isAnalyze) {
+    let actions = [];
+    
+    if (isAction) {
+      // ── States ──────────────────────────────────────────────────────────
+      getStateList().forEach(state => {
+        const stateNames = Object.values(state.names).map(n => n.toLowerCase());
+        if (hasAny(stateNames)) {
+          console.log('[AgriRisk Voice] STATE SPOKEN matched:', state.names.en, '→ STATE VALUE:', state.id);
+          actions.push({ type: 'SELECT_STATE', value: state.id });
+        }
+      });
+
+      // ── Seasons (checked BEFORE districts to avoid false district matches) ──
+      getAgricultureList('season').forEach(season => {
+        const seasonNames = Object.values(season.names).map(n => n.toLowerCase());
+        if (hasAny(seasonNames)) {
+          console.log('[AgriRisk Voice] SEASON CANDIDATES:', seasonNames);
+          console.log('[AgriRisk Voice] SEASON MATCH:', season.id);
+          actions.push({ type: 'SELECT_SEASON', value: season.id });
+        }
+      });
+
+      // ── Crops ───────────────────────────────────────────────────────────
+      getAgricultureList('crop').forEach(crop => {
+        if (hasAny(Object.values(crop.names).map(n => n.toLowerCase()))) {
+          actions.push({ type: 'SELECT_CROP', value: crop.id });
+        }
+      });
+
+      // ── Districts ──────────────────────────────────────────────
+      // Strategy:
+      // 1. If a state is being selected in this command, note the new state ID.
+      // 2. Look up that state's districts from indiaData (most complete source).
+      // 3. If no state context, use the currently active state's districts.
+      // 4. Fall back to global districtTranslations only if no state context.
+      const seasonIds = new Set(actions.filter(a => a.type === 'SELECT_SEASON').map(a => a.value));
+      const newStateId = actions.find(a => a.type === 'SELECT_STATE')?.value;
+      const stateIdForDistricts = newStateId || currentStateId;
+
+      console.log('[AgriRisk Voice] CURRENT STATE:', stateIdForDistricts || '(none)');
+
+      // Build the candidate list: state-scoped districts from indiaData first.
+      let districtCandidates = [];
+      if (stateIdForDistricts && districtsByState[stateIdForDistricts]) {
+        districtCandidates = districtsByState[stateIdForDistricts];
+        console.log('[AgriRisk Voice] AVAILABLE DISTRICTS:', districtCandidates.map(d => d.id));
+      } else {
+        // No state selected — search global districtTranslations (less accurate).
+        districtCandidates = Object.values(districtTranslations);
+        console.log('[AgriRisk Voice] AVAILABLE DISTRICTS: (global fallback, no state selected)');
+      }
+
+      // Skip districts whose ID matches an already-matched season.
+      const filteredCandidates = districtCandidates.filter(d => !seasonIds.has(d.id));
+
+      // Run the fuzzy/exact matcher.
+      const districtMatch = matchDistrictFromList(
+        normalizedText,
+        filteredCandidates,
+        stateIdForDistricts || 'global'
+      );
+
+      if (districtMatch) {
+        actions.push({ type: 'SELECT_DISTRICT', value: districtMatch.id });
+      }
+    } // end if (isAction)
+
+    if (isAnalyze) actions.push({ type: 'ANALYZE_RISK' });
+
+    if (actions.length > 0) {
+      return { intent: INTENTS.FORM_CONTROL, actions };
+    }
+  }
 
   // Dashboard
   if (hasAny(['dashboard', 'home', 'డాష్బోర్డ్', 'డాష్ బోర్డ్', 'டாஷ்போர்டு', 'டாஷ்போர்டை', 'डैशबोर्ड'])) {

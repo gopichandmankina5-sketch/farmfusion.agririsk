@@ -126,13 +126,13 @@ def get_yield_data(state: str, district: str, crop: str, season: str) -> dict:
     }
 
 
-def get_market_data(state: str, district: str, crop: str) -> dict:
+def get_market_data(state: str, district: str, crop: str, season: str) -> dict:
     """Return aggregated market metrics."""
     df = load_market()
     if df.empty:
         return _default_market()
 
-    mask = (df["state"] == state) & (df["district"] == district) & (df["crop"] == crop)
+    mask = (df["state"] == state) & (df["district"] == district) & (df["crop"] == crop) & (df["season"] == season)
     sub = df[mask]
     if sub.empty:
         sub = df[(df["state"] == state) & (df["crop"] == crop)]
@@ -178,13 +178,15 @@ def build_input_data(state: str, district: str, crop: str, season: str) -> dict:
     
     live_weather = get_current_weather(district, state)
     if not live_weather:
-        raise ValueError(f"Could not fetch live weather data for {district}, {state}. Real-time weather data is required to process risk analysis without hardcoded fallbacks.")
+        print(f"[WARN] Could not fetch live weather data for {district}, {state}. Using fallback.")
+        live_weather = _default_weather()
+        live_weather["is_fallback"] = True
         
     weather = {
-        "avg_temperature":       live_weather.get("temperature"),
-        "avg_rainfall":          live_weather.get("rainfall", 0) if live_weather.get("rainfall") is not None else 0,
-        "avg_humidity":          live_weather.get("humidity"),
-        "avg_wind_speed":        live_weather.get("wind_speed"),
+        "avg_temperature":       live_weather.get("temperature") if live_weather.get("temperature") is not None else live_weather.get("avg_temperature", 28),
+        "avg_rainfall":          live_weather.get("rainfall") if live_weather.get("rainfall") is not None else live_weather.get("avg_rainfall", 0),
+        "avg_humidity":          live_weather.get("humidity") if live_weather.get("humidity") is not None else live_weather.get("avg_humidity", 65),
+        "avg_wind_speed":        live_weather.get("wind_speed") if live_weather.get("wind_speed") is not None else live_weather.get("avg_wind_speed", 8),
         "extreme_weather_days":  0, 
         "weather_data":          live_weather 
     }
@@ -192,7 +194,7 @@ def build_input_data(state: str, district: str, crop: str, season: str) -> dict:
     soil    = get_soil_data(state, district)
     pest    = get_pest_data(state, district, crop, season)
     yld     = get_yield_data(state, district, crop, season)
-    market  = get_market_data(state, district, crop)
+    market  = get_market_data(state, district, crop, season)
 
     return {**weather, **soil, **pest, **yld, **market,
             "state": state, "district": district,
