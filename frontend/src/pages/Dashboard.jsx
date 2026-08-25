@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   AreaChart, Area
 } from 'recharts'
-import { Activity, TrendingUp, RefreshCw, AlertTriangle } from 'lucide-react'
+import { Activity, TrendingUp, RefreshCw, AlertTriangle, ChevronRight } from 'lucide-react'
 
 import apiService from '../services/api'
 import RiskGauge from '../components/RiskGauge'
@@ -101,6 +101,9 @@ export default function Dashboard() {
   }, [payload.state]);
 
   const fetchDashboard = useCallback(async () => {
+    if (!payload.state || !payload.district || !payload.crop || !payload.season) {
+      return;
+    }
     setLoading(true)
     setError(null)
     try {
@@ -128,7 +131,14 @@ export default function Dashboard() {
     }
   }, [payload])
 
-  useEffect(() => { fetchDashboard() }, [fetchDashboard])
+  // Only run on initial mount (or when payload is ready on first load)
+  const initialFetchDone = useRef(false);
+  useEffect(() => {
+    if (!initialFetchDone.current && payload.state && payload.district) {
+      fetchDashboard();
+      initialFetchDone.current = true;
+    }
+  }, [payload.state, payload.district, fetchDashboard]);
 
   const handleStateChange = (stateId) => {
     setPayload(p => ({ ...p, state: stateId, district: '' }))
@@ -136,6 +146,10 @@ export default function Dashboard() {
 
   const handleDistrictChange = (districtId) => {
     setPayload(p => ({ ...p, district: districtId }))
+  }
+
+  const handleRefreshClick = () => {
+    fetchDashboard();
   }
 
   useEffect(() => {
@@ -206,13 +220,30 @@ export default function Dashboard() {
               />
             </div>
           </div>
-          <button onClick={fetchDashboard} className="btn-ghost flex items-center gap-2">
+          <button onClick={handleRefreshClick} className="btn-ghost flex items-center gap-2">
             <RefreshCw className="w-4 h-4" /> {t('refresh')}
           </button>
           <Link to="/risk-analysis" className="btn-primary text-sm py-2 px-4">
             <Activity className="w-4 h-4" /> {t('new_analysis')}
           </Link>
         </div>
+      </div>
+
+      {/* Decision Simulator CTA */}
+      <div className="card bg-gradient-to-r from-agri-900 to-agri-800 text-white p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md relative overflow-hidden">
+        <div className="absolute -right-4 -top-4 opacity-10">
+           <Activity className="w-24 h-24" />
+        </div>
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-1">
+             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-white text-agri-900">NEW</span>
+             <h3 className="font-bold text-lg text-white">Decision Simulator</h3>
+          </div>
+          <p className="text-agri-100 text-sm">Not sure what decision is best? Try different farming conditions and compare predicted risk before making a decision.</p>
+        </div>
+        <Link to="/decision-simulator" className="relative z-10 shrink-0 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 backdrop-blur-sm">
+          Open Decision Simulator <ChevronRight className="w-4 h-4" />
+        </Link>
       </div>
 
       {/* Top row: Gauge + Breakdown + Weather */}

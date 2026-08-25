@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts'
-import { Search, ChevronDown, Loader2, AlertCircle } from 'lucide-react'
+import { Search, ChevronDown, Loader2, AlertCircle, ChevronRight } from 'lucide-react'
 
 import apiService from '../services/api'
 import RiskGauge from '../components/RiskGauge'
@@ -34,6 +35,26 @@ export default function RiskAnalysis() {
   const [districts, setDistricts] = useState([])
   const [districtsLoading, setDistrictsLoading] = useState(false)
   const [districtError, setDistrictError] = useState(null)
+  
+  // Load saved state on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('agririsk_last_analysis')
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed.payload && parsed.result) {
+          setForm(parsed.payload)
+          setResult(parsed.result)
+          // Populate districts synchronously from local data to prevent flickering
+          if (parsed.payload.state) {
+            setDistricts(districtsByState[parsed.payload.state] || [])
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Failed to parse saved analysis', e)
+    }
+  }, [])
 
   // Fetch districts when state changes
   useEffect(() => {
@@ -147,6 +168,10 @@ export default function RiskAnalysis() {
     try {
       const data = await apiService.analyzeRisk(form)
       setResult(data)
+      localStorage.setItem('agririsk_last_analysis', JSON.stringify({
+        payload: form,
+        result: data
+      }))
     } catch (err) {
       setError(err.message)
     } finally {
@@ -364,6 +389,17 @@ export default function RiskAnalysis() {
                 <RecommendationCard key={rec.id || idx} rec={rec} index={idx} />
               ))}
             </div>
+          </div>
+
+          {/* Decision Simulator CTA */}
+          <div className="mt-8 bg-gradient-to-br from-agri-50 to-agri-100 rounded-2xl p-6 border border-agri-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+             <div className="relative z-10 flex-1">
+               <h3 className="text-xl font-bold text-agri-900 mb-2">Explore What-If Scenarios</h3>
+               <p className="text-agri-800/80 text-sm">Want to see how your risk score would change if you adjusted soil nutrients, pest control, or faced different weather? Try the Decision Simulator.</p>
+             </div>
+             <Link to="/decision-simulator" onClick={() => localStorage.setItem('agririsk_last_scenario', JSON.stringify(form))} className="relative z-10 shrink-0 bg-agri-700 hover:bg-agri-800 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all shadow flex items-center gap-2">
+                Open Decision Simulator <ChevronRight className="w-4 h-4" />
+             </Link>
           </div>
         </div>
       )}

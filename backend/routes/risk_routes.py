@@ -105,6 +105,99 @@ def analyze():
         return jsonify({"error": "Analysis failed", "detail": str(e)}), 500
 
 
+@risk_bp.route("/simulate", methods=["POST"])
+def simulate():
+    """
+    Decision Simulator endpoint.
+    Accepts current and scenario context. Returns comparison.
+    """
+    body = request.get_json(silent=True) or {}
+    current = body.get("current", {})
+    scenario = body.get("scenario", {})
+    
+    # 1. Run baseline
+    curr_state = current.get("state", "").strip()
+    curr_district = current.get("district", "").strip()
+    curr_crop = current.get("crop", "").strip()
+    curr_season = current.get("season", "").strip()
+    
+    if not all([curr_state, curr_district, curr_crop, curr_season]):
+        return jsonify({"error": "Current context missing required fields"}), 400
+        
+    canon_curr_state = VALID_LOCATIONS.get(curr_state, {}).get("name", curr_state)
+    canon_curr_district = VALID_LOCATIONS.get(curr_state, {}).get("district_map", {}).get(curr_district, curr_district)
+    canon_curr_crop = VALID_CROPS.get(curr_crop, curr_crop)
+    canon_curr_season = VALID_SEASONS.get(curr_season, curr_season)
+    
+    curr_res = analyze_risk(canon_curr_state, canon_curr_district, canon_curr_crop, canon_curr_season)
+    
+    # 2. Run scenario
+    scen_state = scenario.get("state", curr_state).strip()
+    scen_district = scenario.get("district", curr_district).strip()
+    scen_crop = scenario.get("crop", curr_crop).strip()
+    scen_season = scenario.get("season", curr_season).strip()
+    
+    canon_scen_state = VALID_LOCATIONS.get(scen_state, {}).get("name", scen_state)
+    canon_scen_district = VALID_LOCATIONS.get(scen_state, {}).get("district_map", {}).get(scen_district, scen_district)
+    canon_scen_crop = VALID_CROPS.get(scen_crop, scen_crop)
+    canon_scen_season = VALID_SEASONS.get(scen_season, scen_season)
+    
+    overrides = scenario.get("overrides", {})
+    
+    scen_res = analyze_risk(canon_scen_state, canon_scen_district, canon_scen_crop, canon_scen_season, overrides=overrides)
+    
+    # 3. Calculate differences
+    comparison = {
+        "overall": {
+            "current": curr_res["risk_score"],
+            "scenario": scen_res["risk_score"],
+            "change": round(scen_res["risk_score"] - curr_res["risk_score"], 1),
+            "direction": "improved" if scen_res["risk_score"] < curr_res["risk_score"] else ("worsened" if scen_res["risk_score"] > curr_res["risk_score"] else "unchanged")
+        }
+    }
+    
+    # Component breakdown differences
+    for key in ["weather", "pest", "soil", "market", "production"]:
+        c_val = curr_res["breakdown"].get(key, 0)
+        s_val = scen_res["breakdown"].get(key, 0)
+        comparison[key] = {
+            "current": c_val,
+            "scenario": s_val,
+            "change": round(s_val - c_val, 1)
+        }
+        
+    # Programmatic Insights
+    insights = []
+    if comparison["overall"]["change"] < -2:
+        insights.append(f"Your simulated scenario reduces overall predicted risk by {abs(comparison['overall']['change'])} points.")
+    elif comparison["overall"]["change"] > 2:
+        insights.append(f"Warning: Your simulated scenario increases overall predicted risk by {comparison['overall']['change']} points.")
+    else:
+        insights.append("Your simulated scenario results in minimal overall risk change.")
+        
+    improvements = []
+    worsenings = []
+    for k, v in comparison.items():
+        if k == "overall": continue
+        if v["change"] <= -5: improvements.append(f"{k} risk")
+        if v["change"] >= 5: worsenings.append(f"{k} risk")
+        
+    if improvements:
+        insights.append(f"Most of the improvement comes from lower {', '.join(improvements)}.")
+    if worsenings:
+        insights.append(f"However, the changes increase {', '.join(worsenings)}.")
+        
+    if not improvements and not worsenings and comparison["overall"]["change"] == 0:
+        insights.append("The selected variables had negligible impact on the model prediction.")
+    
+    return jsonify({
+        "current": curr_res,
+        "scenario": scen_res,
+        "comparison": comparison,
+        "insights": insights
+    }), 200
+
+
 @risk_bp.route("/regional", methods=["GET"])
 def regional():
     """Return district-level risk data for the map."""

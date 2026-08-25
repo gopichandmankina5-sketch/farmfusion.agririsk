@@ -17,20 +17,27 @@ from backend.services.recommendation_service import generate_recommendations
 from backend.utils.feature_engineering import CROP_BASE_YIELD, CROP_BASE_PRICE
 
 
-def analyze_risk(state: str, district: str, crop: str, season: str) -> dict:
+def analyze_risk(state: str, district: str, crop: str, season: str, overrides: dict = None) -> dict:
     """
     Master risk analysis function.
     1. Collects all data for the given inputs
-    2. Engineers features
-    3. Computes individual risk components (rule-based)
-    4. Refines with ML models where available
-    5. Combines into weighted overall score
-    6. Extracts contributing factors and recommendations
+    2. Applies any simulation overrides
+    3. Engineers features
+    4. Computes individual risk components (rule-based)
+    5. Refines with ML models where available
+    6. Combines into weighted overall score
+    7. Extracts contributing factors and recommendations
     """
     # Step 1: Collect raw data
     raw = build_input_data(state, district, crop, season)
 
-    # Step 2: Engineer features
+    # Step 2: Apply simulation overrides (Decision Simulator feature)
+    if overrides:
+        for key, value in overrides.items():
+            if value is not None:
+                raw[key] = value
+
+    # Step 3: Engineer features
     data = engineer_features(raw.copy())
 
     # Step 3: Compute component risks (rule-based, deterministic)

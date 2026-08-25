@@ -7,6 +7,7 @@ const navItems = [
   { to: '/',               label: 'Home',          icon: Home },
   { to: '/dashboard',      label: 'Dashboard',     icon: BarChart3 },
   { to: '/risk-analysis',  label: 'Risk Analysis', icon: Activity },
+  { to: '/decision-simulator',label: 'Decision Simulator',icon: TrendingUp },
   { to: '/regional-risk',  label: 'Regional Risk', icon: Map },
   { to: '/recommendations',label: 'Recommendations',icon: Lightbulb },
 ]

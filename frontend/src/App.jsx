@@ -8,6 +8,7 @@ import Dashboard       from './pages/Dashboard'
 import RiskAnalysis    from './pages/RiskAnalysis'
 import RegionalRisk    from './pages/RegionalRisk'
 import Recommendations from './pages/Recommendations'
+import DecisionSimulator from './pages/DecisionSimulator'
 import VoiceAssistant  from './components/VoiceAssistant'
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
                 <Route path="/risk-analysis"   element={<RiskAnalysis />} />
                 <Route path="/regional-risk"   element={<RegionalRisk />} />
                 <Route path="/recommendations" element={<Recommendations />} />
+                <Route path="/decision-simulator" element={<DecisionSimulator />} />
                 {/* 404 */}
                 <Route path="*" element={
                   <div className="p-10 text-center">
