@@ -50,10 +50,10 @@ def get_weather_summary(state: str, district: str) -> dict:
         return _default_weather()
 
     return {
-        "avg_temperature":       round(sub["temperature"].mean(), 1),
-        "avg_rainfall":          round(sub["rainfall"].mean(), 1),
-        "avg_humidity":          round(sub["humidity"].mean(), 1),
-        "avg_wind_speed":        round(sub["wind_speed"].mean(), 1),
+        "avg_temperature":       float(round(sub["temperature"].mean(), 1)),
+        "avg_rainfall":          float(round(sub["rainfall"].mean(), 1)),
+        "avg_humidity":          float(round(sub["humidity"].mean(), 1)),
+        "avg_wind_speed":        float(round(sub["wind_speed"].mean(), 1)),
         "extreme_weather_days":  int(sub["extreme_weather"].sum()),
     }
 
@@ -140,9 +140,9 @@ def get_market_data(state: str, district: str, crop: str) -> dict:
         return _default_market()
 
     return {
-        "avg_market_price": round(sub["market_price"].mean(), 1),
-        "avg_demand":       round(sub["demand"].mean(), 3),
-        "avg_supply":       round(sub["supply"].mean(), 3),
+        "avg_market_price": float(round(sub["market_price"].mean(), 1)),
+        "avg_demand":       float(round(sub["demand"].mean(), 3)),
+        "avg_supply":       float(round(sub["supply"].mean(), 3)),
     }
 
 
@@ -176,26 +176,18 @@ def build_input_data(state: str, district: str, crop: str, season: str) -> dict:
     """
     from backend.services.weather_service import get_current_weather
     
-    # Get live weather
     live_weather = get_current_weather(district, state)
     if not live_weather:
-        weather = {
-            "avg_temperature":       0,
-            "avg_rainfall":          0,
-            "avg_humidity":          0,
-            "avg_wind_speed":        0,
-            "extreme_weather_days":  0, 
-            "weather_data":          None 
-        }
-    else:
-        weather = {
-            "avg_temperature":       live_weather.get("temperature") or 28,
-            "avg_rainfall":          live_weather.get("rainfall") or 0,
-            "avg_humidity":          live_weather.get("humidity") or 65,
-            "avg_wind_speed":        live_weather.get("wind_speed") or 8,
-            "extreme_weather_days":  0, 
-            "weather_data":          live_weather 
-        }
+        raise ValueError(f"Could not fetch live weather data for {district}, {state}. Real-time weather data is required to process risk analysis without hardcoded fallbacks.")
+        
+    weather = {
+        "avg_temperature":       live_weather.get("temperature"),
+        "avg_rainfall":          live_weather.get("rainfall", 0) if live_weather.get("rainfall") is not None else 0,
+        "avg_humidity":          live_weather.get("humidity"),
+        "avg_wind_speed":        live_weather.get("wind_speed"),
+        "extreme_weather_days":  0, 
+        "weather_data":          live_weather 
+    }
 
     soil    = get_soil_data(state, district)
     pest    = get_pest_data(state, district, crop, season)

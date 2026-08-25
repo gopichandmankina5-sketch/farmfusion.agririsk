@@ -11,7 +11,7 @@ from backend.utils.risk_calculator import (
     classify_risk, extract_factors
 )
 from backend.services.prediction_service import (
-    predict_risk_score, predict_pest_risk, predict_yield_risk, predict_market_risk
+    predict_risk_score, predict_pest_risk, predict_soil_risk, predict_yield_risk, predict_market_risk
 )
 from backend.services.recommendation_service import generate_recommendations
 from backend.utils.feature_engineering import CROP_BASE_YIELD, CROP_BASE_PRICE
@@ -38,32 +38,21 @@ def analyze_risk(state: str, district: str, crop: str, season: str) -> dict:
                                  data["avg_humidity"], data["avg_wind_speed"],
                                  data["extreme_weather_days"])
 
-    pe_risk = predict_pest_risk(data) if True else calc_pest_risk(
-        data["pest_probability"], data["disease_probability"])
+    pe_risk = predict_pest_risk(data)
 
-    s_risk  = calc_soil_risk(data["soil_ph"], data["nitrogen"], data["phosphorus"],
-                              data["potassium"], data["soil_moisture"])
+    s_risk  = predict_soil_risk(data)
 
     base_price = CROP_BASE_PRICE.get(crop, 2500)
-    m_risk  = predict_market_risk(data) if True else calc_market_risk(
-        data["avg_market_price"], data["avg_demand"], data["avg_supply"], base_price)
+    m_risk  = predict_market_risk(data)
 
     base_yield = CROP_BASE_YIELD.get(crop, 2000)
-    pr_risk = predict_yield_risk(data) if True else calc_production_risk(
-        data["yield"], base_yield)
+    pr_risk = predict_yield_risk(data)
 
     # Step 4: Weighted overall risk (ML or rule-based)
     overall = calc_overall_risk(w_risk, pe_risk, s_risk, m_risk, pr_risk)
 
-    # Try ML-refined prediction
-    try:
-        ml_score = predict_risk_score(data)
-        # Blend: 60% ML + 40% rule-based for stability
-        blended = round(0.6 * ml_score + 0.4 * overall["risk_score"], 1)
-        overall["risk_score"]  = blended
-        overall["risk_level"]  = classify_risk(blended)
-    except Exception:
-        pass
+    # Note: ML-refined prediction (predict_risk_score) removed per user constraints (no fake target labels)
+    # The overall risk score will be purely deterministic/rule-based based on the component risks.
 
     # Step 5: Factors
     factors = extract_factors(

@@ -20,6 +20,9 @@ api.interceptors.response.use(
     if (response.config.url === '/risk/analyze' || response.config.url.endsWith('/risk/analyze')) {
       window.__AGRIRISK_LAST_RISK__ = response.data;
     }
+    if (response.config.url === '/risk/regional' || response.config.url.endsWith('/risk/regional')) {
+      window.__AGRIRISK_REGIONAL_DATA__ = response.data;
+    }
     return response.data;
   },
   (error) => {
