@@ -32,8 +32,12 @@ export const startListening = (langContextCode, onResult, onError, onEnd) => {
     recognition.maxAlternatives = 1;
 
     recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      onResult(transcript);
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          const transcript = event.results[i][0].transcript;
+          onResult(transcript);
+        }
+      }
     };
 
     recognition.onerror = (event) => {

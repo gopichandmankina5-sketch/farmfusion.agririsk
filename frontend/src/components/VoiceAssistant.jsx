@@ -4,6 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { startListening, stopSpeaking, speakResponse, isVoiceSupported } from '../services/voiceService';
 import { parseVoiceCommand, detectSpeechLanguage, INTENTS } from '../utils/voiceCommands';
 import { getVoiceResponse } from '../utils/voiceTranslations';
+import { generateRecommendations } from '../utils/recommendationEngine';
 import { useNavigate } from 'react-router-dom';
 import apiService from '../services/api';
 
@@ -106,7 +107,7 @@ export default function VoiceAssistant() {
 
   const handleIntent = (text) => {
     const detectedLang = detectSpeechLanguage(text, language);
-    const intent = parseVoiceCommand(text);
+    const intent = parseVoiceCommand(text, conversationContext);
     
     console.log("[VOICE] Selected language:", language);
     console.log("[VOICE] Detected language:", detectedLang);
@@ -115,55 +116,114 @@ export default function VoiceAssistant() {
 
     const cachedRisk = window.__AGRIRISK_LAST_RISK__;
     const weather = cachedRisk?.weather_data;
+    const regionalData = window.__AGRIRISK_REGIONAL_DATA__;
+    const isAll = text.toLowerCase().includes('all') || text.includes('అన్ని') || text.includes('எல்லா') || text.includes('सभी');
+
+    if (cachedRisk) {
+      console.log("[AgriRisk Voice] CURRENT ANALYSIS:", {
+        crop: cachedRisk.crop,
+        district: cachedRisk.district,
+        season: cachedRisk.season,
+        riskLevel: cachedRisk.risk_level,
+        riskScore: cachedRisk.risk_score,
+        breakdown: cachedRisk.breakdown
+      });
+    }
 
     try {
-      // Handle Contextual Follow-ups First
+      // 1. GREETING & HELP
+      if (intent === INTENTS.GREETING) {
+        provideResponse(getVoiceResponse('GREETING', detectedLang), detectedLang, { lastIntent: intent, lastTopic: 'GREETING' });
+        return;
+      }
+      if (intent === INTENTS.GENERAL_HELP) {
+        provideResponse(getVoiceResponse('GENERAL_HELP', detectedLang), detectedLang, { lastIntent: intent, lastTopic: 'HELP' });
+        return;
+      }
+
+      // 2. CONTEXTUAL FOLLOW-UPS (Safety Rule)
       if (intent === INTENTS.FOLLOW_UP_EXPLANATION) {
-        if (conversationContext.lastIntent === INTENTS.CROP_RISK) {
+        if (conversationContext.lastTopic === 'RISK' || conversationContext.lastIntent === INTENTS.CROP_RISK) {
           const mainFactor = cachedRisk?.breakdown?.weather > cachedRisk?.breakdown?.market ? 'weather conditions' : 'market conditions';
           provideResponse(getVoiceResponse('EXPLANATION_CROP_RISK', detectedLang, { factor: mainFactor }), detectedLang);
-          return;
+        } else if (conversationContext.lastTopic === 'WEATHER') {
+          provideResponse(getVoiceResponse('EXPLANATION_WEATHER', detectedLang, { weatherRisk: Math.round(cachedRisk?.breakdown?.weather || 0), condition: weather?.condition || 'current conditions' }), detectedLang);
+        } else if (conversationContext.lastTopic === 'RECOMMENDATIONS') {
+          const mainFactor = cachedRisk?.breakdown?.weather > cachedRisk?.breakdown?.market ? 'weather' : 'market';
+          provideResponse(getVoiceResponse('EXPLANATION_RECOMMENDATION', detectedLang, { factor: mainFactor }), detectedLang);
+        } else if (conversationContext.lastTopic === 'REGIONAL') {
+           const districtData = regionalData?.find(d => d.district === cachedRisk?.district);
+           provideResponse(getVoiceResponse('EXPLANATION_REGIONAL', detectedLang, { level: districtData?.risk_level || 'unknown' }), detectedLang);
         } else {
-          // Fallback if context is missing
           provideResponse(getVoiceResponse('CONTEXT_MISSING', detectedLang), detectedLang);
-          return;
         }
+        return;
       }
       
       if (intent === INTENTS.FOLLOW_UP_RECOMMENDATION) {
-        // Use existing recommendation UI/logic as fallback
-        provideResponse(getVoiceResponse('RECOMMENDATIONS', detectedLang), detectedLang);
-        navigate('/recommendations');
+        // Answer directly with recommendations
+        let recs = cachedRisk ? generateRecommendations(cachedRisk.breakdown, cachedRisk.risk_level, cachedRisk.crop, cachedRisk.state, cachedRisk.district, cachedRisk.season) : null;
+        if (recs) {
+          console.log("[AgriRisk Voice] GENERATED RECOMMENDATIONS:", recs);
+          if (!isAll) recs = recs.slice(0, 3);
+        }
+        provideResponse(getVoiceResponse('RECOMMENDATION_INFORMATION', detectedLang, { recommendations: recs, isAll: isAll, total: cachedRisk ? generateRecommendations(cachedRisk.breakdown, cachedRisk.risk_level, cachedRisk.crop, cachedRisk.state, cachedRisk.district, cachedRisk.season).length : 0 }), detectedLang, { lastIntent: INTENTS.RECOMMENDATION_INFORMATION, lastTopic: 'RECOMMENDATIONS' });
         return;
       }
       
       if (intent === INTENTS.FOLLOW_UP_WEATHER_IMPACT) {
         if (conversationContext.lastTopic === 'WEATHER' || conversationContext.lastIntent === INTENTS.WEATHER_CURRENT) {
           provideResponse(getVoiceResponse('WEATHER_IMPACT_ANALYSIS', detectedLang, { risk: Math.round(cachedRisk?.breakdown?.weather || 0) }), detectedLang);
-          return;
         } else {
            provideResponse(getVoiceResponse('CONTEXT_MISSING', detectedLang), detectedLang);
-           return;
         }
+        return;
       }
 
-      // Existing standalone commands
-      if (intent === INTENTS.DASHBOARD) {
-        provideResponse(getVoiceResponse('DASHBOARD', detectedLang), detectedLang, { lastIntent: intent, lastTopic: 'NAVIGATION' });
+      // 3. EXPLICIT NAVIGATION COMMANDS
+      if (intent === INTENTS.NAVIGATE_DASHBOARD) {
+        provideResponse(getVoiceResponse('NAVIGATE_DASHBOARD', detectedLang), detectedLang, { lastIntent: intent, lastTopic: 'NAVIGATION' });
         navigate('/dashboard');
-        
-      } else if (intent === INTENTS.REGIONAL_RISK) {
-        provideResponse(getVoiceResponse('REGIONAL_RISK', detectedLang), detectedLang, { lastIntent: intent, lastTopic: 'NAVIGATION' });
+        return;
+      }
+      if (intent === INTENTS.NAVIGATE_REGIONAL_RISK) {
+        provideResponse(getVoiceResponse('NAVIGATE_REGIONAL_RISK', detectedLang), detectedLang, { lastIntent: intent, lastTopic: 'NAVIGATION' });
         navigate('/regional-risk');
-        
-      } else if (intent === INTENTS.RISK_ANALYSIS) {
-        provideResponse(getVoiceResponse('DASHBOARD', detectedLang), detectedLang, { lastIntent: intent, lastTopic: 'NAVIGATION' });
+        return;
+      }
+      if (intent === INTENTS.NAVIGATE_RISK_ANALYSIS) {
+        provideResponse(getVoiceResponse('NAVIGATE_RISK_ANALYSIS', detectedLang), detectedLang, { lastIntent: intent, lastTopic: 'NAVIGATION' });
         navigate('/risk-analysis');
-        
-      } else if (intent === INTENTS.RECOMMENDATIONS || intent === INTENTS.IRRIGATION) {
-        provideResponse(getVoiceResponse('RECOMMENDATIONS', detectedLang), detectedLang, { lastIntent: intent, lastTopic: 'RECOMMENDATIONS' });
+        return;
+      }
+      if (intent === INTENTS.NAVIGATE_RECOMMENDATIONS) {
+        provideResponse(getVoiceResponse('NAVIGATE_RECOMMENDATIONS', detectedLang), detectedLang, { lastIntent: intent, lastTopic: 'NAVIGATION' });
         navigate('/recommendations');
+        return;
+      }
+      if (intent === INTENTS.NAVIGATE_WEATHER) {
+        provideResponse(getVoiceResponse('NAVIGATE_WEATHER', detectedLang), detectedLang, { lastIntent: intent, lastTopic: 'NAVIGATION' });
+        navigate('/dashboard'); 
+        return;
+      }
+
+      // 4. CONVERSATIONAL INFORMATIONAL INTENTS
+      if (intent === INTENTS.RECOMMENDATION_INFORMATION || intent === INTENTS.IRRIGATION) {
+        let recs = cachedRisk ? generateRecommendations(cachedRisk.breakdown, cachedRisk.risk_level, cachedRisk.crop, cachedRisk.state, cachedRisk.district, cachedRisk.season) : null;
+        if (recs) {
+          console.log("[AgriRisk Voice] GENERATED RECOMMENDATIONS:", recs);
+          if (!isAll) recs = recs.slice(0, 3);
+        }
+        provideResponse(getVoiceResponse('RECOMMENDATION_INFORMATION', detectedLang, { recommendations: recs, isAll: isAll, total: cachedRisk ? generateRecommendations(cachedRisk.breakdown, cachedRisk.risk_level, cachedRisk.crop, cachedRisk.state, cachedRisk.district, cachedRisk.season).length : 0 }), detectedLang, { lastIntent: intent, lastTopic: 'RECOMMENDATIONS' });
+
         
+      } else if (intent === INTENTS.REGIONAL_RISK_INFORMATION) {
+        const districtData = regionalData?.find(d => d.district === cachedRisk?.district);
+        provideResponse(getVoiceResponse('REGIONAL_RISK_INFORMATION', detectedLang, { district: cachedRisk?.district, level: districtData?.risk_level }), detectedLang, { lastIntent: intent, lastTopic: 'REGIONAL' });
+        
+      } else if (intent === INTENTS.CROP_INFORMATION) {
+        provideResponse(getVoiceResponse('CROP_INFORMATION', detectedLang, { crop: cachedRisk?.crop, district: cachedRisk?.district }), detectedLang, { lastIntent: intent, lastTopic: 'CROP' });
+
       } else if (intent === INTENTS.WEATHER_CURRENT || intent === INTENTS.WEATHER) {
         if (weather && weather.temperature !== undefined) {
           provideResponse(getVoiceResponse('WEATHER_CURRENT', detectedLang, {

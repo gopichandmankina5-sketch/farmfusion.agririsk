@@ -19,25 +19,25 @@ from backend.config.config import Config
 
 
 def train():
-    path = os.path.join(Config.PROC_DATA_DIR, "risk_features.csv")
+    path = os.path.join(Config.PROC_DATA_DIR, "kaggle_yield.csv")
     df = pd.read_csv(path)
 
-    df["season_enc"]  = df["season"].map(SEASON_ENC).fillna(0)
-    df["base_yield"]  = df["crop"].map(CROP_BASE_YIELD).fillna(2000)
-    df["yield_ratio"] = (df["yield"] / df["base_yield"]).clip(0, 3)
+    df["season_enc"]  = df["Season"].map(SEASON_ENC).fillna(0)
+    # Using existing CROP_BASE_YIELD mapping for crop representation
+    df["base_yield"]  = df["Crop"].map(CROP_BASE_YIELD).fillna(2000)
 
+    # Note: State is excluded as we want the model to learn from agronomical factors 
+    # instead of over-fitting to state names.
     feat_cols = [
-        "avg_temperature", "avg_rainfall", "soil_moisture", "nitrogen",
-        "phosphorus", "potassium", "soil_ph", "pest_probability",
-        "disease_probability", "yield_ratio", "season_enc",
+        "Area", "Annual_Rainfall", "Fertilizer", "Pesticide", "season_enc", "base_yield"
     ]
 
     X = df[feat_cols].fillna(0)
-    y = df["production_risk"].clip(0, 100)
+    y = df["Yield"]
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
 
-    model = RandomForestRegressor(n_estimators=150, max_depth=8, random_state=42, n_jobs=-1)
+    model = RandomForestRegressor(n_estimators=100, max_depth=10, random_state=42, n_jobs=-1)
     model.fit(X_train, y_train)
 
     preds = model.predict(X_test)
