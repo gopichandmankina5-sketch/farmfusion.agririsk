@@ -49,8 +49,7 @@ warnings.filterwarnings("ignore")
 
 from ml.preprocessing      import load_risk_features, validate_dataframe, clean_dataframe, split_features_target, TARGET
 from ml.feature_engineering import build_preprocessor, get_feature_names
-# pyrefly: ignore [missing-import]
-from ml.evaluate_model      import evaluate_and_report
+
 from ml.save_model          import save_risk_model
 
 
@@ -298,7 +297,7 @@ def train():
         top10 = importances.sort_values(ascending=False).head(10)
         print("\n  Top 10 features by importance:")
         for feat, imp in top10.items():
-            bar = "█" * int(imp * 60)
+            bar = "#" * int(imp * 60)
             print(f"    {feat:<30} {imp:.4f}  {bar}")
     else:
         print("  (feature importance not available for this estimator)")
@@ -337,7 +336,6 @@ def train():
 
     # ── Detailed evaluation report ────────────────────────────────────────
     y_test_pred = final_pipe.predict(X_test)
-    evaluate_and_report(y_test, y_test_pred, df_clean.iloc[X_test.index])
 
     print("\n[DONE] ML training pipeline complete.")
     return final_pipe, metrics_summary

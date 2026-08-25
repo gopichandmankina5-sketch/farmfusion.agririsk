@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mic, MicOff, Loader2, X, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-import { startListening, stopSpeaking, speakResponse, isVoiceSupported } from '../services/voiceService';
+import { startListening, stopSpeaking, speakResponse, isVoiceSupported, isTTSSpeaking, setOnTTSEnd } from '../services/voiceService';
 import { parseVoiceCommand, detectSpeechLanguage, INTENTS } from '../utils/voiceCommands';
 import { getVoiceResponse } from '../utils/voiceTranslations';
 import { generateRecommendations } from '../utils/recommendationEngine';
@@ -33,16 +33,28 @@ export default function VoiceAssistant() {
   });
   
   const recognitionRef = useRef(null);
+  // Tracks whether we deliberately stopped recognition (to suppress spurious onEnd restarts)
+  const intentionalStopRef = useRef(false);
+  // Whether the component is still mounted
+  const isMountedRef = useRef(true);
+  // Ref copy of isOpen to avoid stale closures in async callbacks
+  const isOpenRef = useRef(false);
 
-  // Stop recognition and speaking on unmount or close
+  // Cleanup on unmount
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
+      isMountedRef.current = false;
+      intentionalStopRef.current = true;
       if (recognitionRef.current) {
-        try { recognitionRef.current.stop(); } catch(e) {}
+        try { recognitionRef.current.abort(); } catch(e) {}
       }
       stopSpeaking();
     };
   }, []);
+
+  // Keep isOpenRef in sync with isOpen state
+  useEffect(() => { isOpenRef.current = isOpen; }, [isOpen]);
 
   const handleOpen = () => {
     setIsOpen(true);
@@ -50,24 +62,48 @@ export default function VoiceAssistant() {
     setTranscript('');
     setErrorMessage('');
     if (isVoiceSupported()) {
-      startVoiceSession();
+      // Don't auto-start if TTS is currently speaking (would pick up assistant voice)
+      if (!isTTSSpeaking()) {
+        startVoiceSession();
+      } else {
+        setCurrentState(STATES.IDLE);
+      }
     }
   };
 
   const handleClose = () => {
     setIsOpen(false);
+    intentionalStopRef.current = true;
     if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch(e) {}
+      try { recognitionRef.current.abort(); } catch(e) {}
+      recognitionRef.current = null;
     }
     stopSpeaking();
     if (isVoiceSupported()) {
       setCurrentState(STATES.IDLE);
     }
-    // Optionally reset context on close if desired, but user said "do not reset after every message"
-    // Keeping it alive while the app runs is fine.
+    // Keeping conversationContext alive while the app runs is intentional.
   };
 
   const startVoiceSession = () => {
+    // Guard: do not start while TTS is speaking (would pick up assistant voice)
+    if (isTTSSpeaking()) {
+      console.log('[AgriRisk Voice] Mic blocked — TTS is speaking.');
+      // Register callback: start listening after TTS finishes
+      setOnTTSEnd(() => {
+        if (isMountedRef.current && isOpenRef.current) startVoiceSession();
+      });
+      return;
+    }
+
+    // Guard: abort any existing session before starting a new one
+    if (recognitionRef.current) {
+      intentionalStopRef.current = true;
+      try { recognitionRef.current.abort(); } catch(e) {}
+      recognitionRef.current = null;
+    }
+
+    intentionalStopRef.current = false;
     stopSpeaking();
     setTranscript('');
     setResponse('');
@@ -76,28 +112,50 @@ export default function VoiceAssistant() {
 
     const recognition = startListening(
       language,
-      (text) => {
-        setTranscript(text);
-        setCurrentState(STATES.PROCESSING);
-        handleIntent(text);
+      // onResult(finalTranscript, interimTranscript)
+      (finalText, interimText) => {
+        if (!isMountedRef.current) return;
+
+        if (interimText !== null) {
+          // Live interim update: show in transcript area while user speaks
+          setTranscript(interimText);
+          return; // Do NOT execute command on interim
+        }
+
+        if (finalText) {
+          console.log('[AgriRisk Voice] Executing intent for:', finalText);
+          setTranscript(finalText);
+          setCurrentState(STATES.PROCESSING);
+          handleIntent(finalText);
+        }
       },
       (err) => {
+        if (!isMountedRef.current) return;
         setErrorMessage(err);
         setCurrentState(STATES.ERROR);
       },
+      // onEnd — uses ref to avoid stale closure on currentState
       () => {
-        if (currentState === STATES.LISTENING) {
-          // If ended without results
-          setCurrentState(STATES.IDLE);
-        }
+        if (!isMountedRef.current) return;
+        if (intentionalStopRef.current) return; // deliberate stop, no action
+        // Session ended without a result (e.g., no-speech) → go idle
+        setCurrentState(prev =>
+          prev === STATES.LISTENING ? STATES.IDLE : prev
+        );
       }
     );
-    
+
     recognitionRef.current = recognition;
   };
 
   const provideResponse = (text, targetLang, newContext = null) => {
     setResponse(text);
+    // Stop mic before TTS to prevent feedback loop
+    intentionalStopRef.current = true;
+    if (recognitionRef.current) {
+      try { recognitionRef.current.abort(); } catch(e) {}
+      recognitionRef.current = null;
+    }
     speakResponse(text, targetLang || language);
     setCurrentState(STATES.IDLE);
     if (newContext) {
@@ -105,14 +163,88 @@ export default function VoiceAssistant() {
     }
   };
 
+  // Helper used by the async FORM_CONTROL handler to finalize responses and optionally trigger Analyze.
+  // Must be defined before handleIntent since handleIntent references it via closure.
+  const finishFormControl = (freshControls, responses, hasAnalyze, actions, detectedLang, intent) => {
+    if (hasAnalyze) {
+      const stateOk   = !!(freshControls.form.state   || actions.some(a => a.type === 'SELECT_STATE'));
+      const districtOk= !!(freshControls.form.district|| actions.some(a => a.type === 'SELECT_DISTRICT'));
+      const cropOk    = !!(freshControls.form.crop    || actions.some(a => a.type === 'SELECT_CROP'));
+      const seasonOk  = !!(freshControls.form.season  || actions.some(a => a.type === 'SELECT_SEASON'));
+      const isComplete = stateOk && districtOk && cropOk && seasonOk;
+
+      if (!isComplete) {
+        const missing = [];
+        if (!stateOk)    missing.push('state');
+        if (!districtOk) missing.push('district');
+        if (!cropOk)     missing.push('crop');
+        if (!seasonOk)   missing.push('season');
+        responses.push(getVoiceResponse('FORM_MISSING_FIELDS', detectedLang, { missing: missing.join(', ') }));
+        provideResponse(responses.join(' '), detectedLang, { lastIntent: intent, lastTopic: 'FORM' });
+      } else {
+        if (actions.length > 1) {
+          responses.push(getVoiceResponse('FORM_ALL_SELECTED', detectedLang));
+        } else {
+          responses.push('Analyzing...');
+        }
+        provideResponse(responses.join(' '), detectedLang, { lastIntent: intent, lastTopic: 'FORM' });
+        console.log('[AgriRisk Voice] ANALYZE REQUEST:', freshControls.form);
+
+        // Poll for district list readiness before clicking Analyze.
+        const expectedDistrict = actions.find(a => a.type === 'SELECT_DISTRICT')?.value;
+        const hasNewState = actions.some(a => a.type === 'SELECT_STATE');
+        const hasNewDistrict = actions.some(a => a.type === 'SELECT_DISTRICT');
+
+        if (hasNewState && hasNewDistrict && expectedDistrict) {
+          let pollAttempts = 0;
+          const MAX_POLL = 20; // 20 × 200ms = 4s max
+          const pollAnalyze = () => {
+            pollAttempts++;
+            const fc = window.__AGRIRISK_FORM_CONTROLS__;
+            const dList = fc?.districts || [];
+            if (dList.includes(expectedDistrict) || pollAttempts >= MAX_POLL) {
+              console.log('[AgriRisk Voice] Executing handleAnalyze (attempt', pollAttempts, ')');
+              if (fc) fc.handleAnalyze();
+            } else {
+              setTimeout(pollAnalyze, 200);
+            }
+          };
+          setTimeout(pollAnalyze, 200);
+        } else {
+          // No async dependency — small React flush delay
+          setTimeout(() => {
+            const fc = window.__AGRIRISK_FORM_CONTROLS__;
+            if (fc) fc.handleAnalyze();
+          }, 150);
+        }
+      }
+    } else if (responses.length > 0) {
+      provideResponse(responses.join(' '), detectedLang, { lastIntent: intent, lastTopic: 'FORM' });
+    }
+  };
+
   const handleIntent = (text) => {
     const detectedLang = detectSpeechLanguage(text, language);
-    const intent = parseVoiceCommand(text, conversationContext);
+
+    // Pass current form state to the parser so district matching is state-scoped.
+    const formControls = window.__AGRIRISK_FORM_CONTROLS__;
+    const voiceContext = {
+      ...conversationContext,
+      currentState: formControls?.form?.state || null,
+    };
+
+    let intentResult = parseVoiceCommand(text, voiceContext);
     
-    console.log("[VOICE] Selected language:", language);
-    console.log("[VOICE] Detected language:", detectedLang);
-    console.log("[VOICE] Detected intent:", intent);
-    console.log("[VOICE] Current context:", conversationContext);
+    let intent = intentResult;
+    let actions = [];
+    if (typeof intentResult === 'object') {
+      intent = intentResult.intent;
+      actions = intentResult.actions || [];
+    }
+    
+    console.log('[AgriRisk Voice] DETECTED INTENT:', intent);
+    console.log('[AgriRisk Voice] Actions:', actions);
+
 
     const cachedRisk = window.__AGRIRISK_LAST_RISK__;
     const weather = cachedRisk?.weather_data;
@@ -138,6 +270,135 @@ export default function VoiceAssistant() {
       }
       if (intent === INTENTS.GENERAL_HELP) {
         provideResponse(getVoiceResponse('GENERAL_HELP', detectedLang), detectedLang, { lastIntent: intent, lastTopic: 'HELP' });
+        return;
+      }
+
+      // 1.5 FORM CONTROL
+      if (intent === INTENTS.FORM_CONTROL) {
+        const controls = window.__AGRIRISK_FORM_CONTROLS__;
+        
+        if (!controls) {
+          provideResponse(getVoiceResponse('FORM_NOT_ON_PAGE', detectedLang), detectedLang);
+          return;
+        }
+
+        const stateAction   = actions.find(a => a.type === 'SELECT_STATE');
+        const districtAction = actions.find(a => a.type === 'SELECT_DISTRICT');
+        const cropAction    = actions.find(a => a.type === 'SELECT_CROP');
+        const seasonAction  = actions.find(a => a.type === 'SELECT_SEASON');
+        const hasAnalyze    = actions.some(a => a.type === 'ANALYZE_RISK');
+
+        // ── STEP 1: Apply state immediately ──────────────────────────────
+        if (stateAction) {
+          console.log('[AgriRisk Voice] STATE VALUE:', stateAction.value);
+          controls.handleChange('state', stateAction.value);
+        }
+
+        // ── STEP 2: Apply crop and season (independent, no async deps) ───
+        if (cropAction) {
+          controls.handleChange('crop', cropAction.value);
+        }
+        if (seasonAction) {
+          console.log('[AgriRisk Voice] SEASON MATCH:', seasonAction.value);
+          controls.handleChange('season', seasonAction.value);
+        }
+
+        // ── STEP 3: Build confirmation responses + handle district async ─
+        // We collect all responses, then call provideResponse once.
+        const responses = [];
+
+        if (stateAction) {
+          const stateName = stateAction.value.replace(/_/g, ' ');
+          responses.push(getVoiceResponse('FORM_STATE_SELECTED', detectedLang, { value: stateName }));
+        }
+        if (cropAction) {
+          responses.push(getVoiceResponse('FORM_CROP_SELECTED', detectedLang, { value: cropAction.value }));
+        }
+        if (seasonAction) {
+          responses.push(getVoiceResponse('FORM_SEASON_SELECTED', detectedLang, { value: seasonAction.value }));
+        }
+
+        // ── STEP 4: District selection (with async district-list wait) ───
+        const applyDistrictAndFinish = (districtId) => {
+          // Get the freshest controls snapshot from the global (updated by RiskAnalysis useEffect)
+          const freshControls = window.__AGRIRISK_FORM_CONTROLS__;
+          if (!freshControls) {
+            provideResponse(responses.join(' '), detectedLang, { lastIntent: intent, lastTopic: 'FORM' });
+            return;
+          }
+          const availableDistricts = freshControls.districts || [];
+          console.log('[AgriRisk Voice] AVAILABLE DISTRICTS:', availableDistricts);
+          console.log('[AgriRisk Voice] DISTRICT SPOKEN:', districtId);
+
+          if (availableDistricts.includes(districtId)) {
+            freshControls.handleChange('district', districtId);
+            console.log('[AgriRisk Voice] DISTRICT MATCH confirmed:', districtId);
+            responses.push(getVoiceResponse('FORM_DISTRICT_SELECTED', detectedLang, { value: districtId.replace(/_/g, ' ') }));
+          } else {
+            // District not in list — either wrong state or truly unavailable
+            responses.push(getVoiceResponse('FORM_DISTRICT_UNAVAILABLE', detectedLang, { district: districtId.replace(/_/g, ' ') }));
+          }
+
+          finishFormControl(freshControls, responses, hasAnalyze, actions, detectedLang, intent);
+        };
+
+        const finishWithoutDistrict = () => {
+          const freshControls = window.__AGRIRISK_FORM_CONTROLS__;
+          finishFormControl(freshControls || controls, responses, hasAnalyze, actions, detectedLang, intent);
+        };
+
+        if (districtAction) {
+          console.log('[AgriRisk Voice] DISTRICT SPOKEN (raw action):', districtAction.value);
+
+          if (stateAction) {
+            // State was JUST changed — district list is loading asynchronously.
+            // Poll window.__AGRIRISK_FORM_CONTROLS__.districts until the new list arrives.
+            let attempts = 0;
+            const MAX_WAIT_MS = 4000; // max 4 seconds
+            const POLL_INTERVAL = 150; // check every 150ms
+            const MAX_ATTEMPTS = Math.ceil(MAX_WAIT_MS / POLL_INTERVAL);
+            const expectedState = stateAction.value;
+
+            const pollForDistricts = () => {
+              attempts++;
+              const freshControls = window.__AGRIRISK_FORM_CONTROLS__;
+              const freshDistricts = freshControls?.districts || [];
+              const freshFormState = freshControls?.form?.state;
+
+              // Districts are ready when: the form state matches the new state AND
+              // the district list is non-empty.
+              const stateReady = freshFormState === expectedState;
+              const districtsLoaded = freshDistricts.length > 0;
+
+              console.log(
+                `[AgriRisk Voice] Polling districts: attempt=${attempts} state=${freshFormState} districts=${freshDistricts.length}`
+              );
+
+              if (stateReady && districtsLoaded) {
+                applyDistrictAndFinish(districtAction.value);
+              } else if (attempts >= MAX_ATTEMPTS) {
+                // Timed out — try with whatever is available
+                console.log('[AgriRisk Voice] District poll timed out, applying with current list');
+                applyDistrictAndFinish(districtAction.value);
+              } else {
+                setTimeout(pollForDistricts, POLL_INTERVAL);
+              }
+            };
+
+            // Give React one render cycle before starting to poll
+            setTimeout(pollForDistricts, 80);
+          } else {
+            // State was NOT changed in this command — districts should already be loaded.
+            // We can apply immediately, but give one React tick.
+            setTimeout(() => applyDistrictAndFinish(districtAction.value), 80);
+          }
+        } else {
+          // No district in this command — finish immediately
+          if (responses.length > 0 || hasAnalyze) {
+            setTimeout(finishWithoutDistrict, 80);
+          }
+        }
+
         return;
       }
 

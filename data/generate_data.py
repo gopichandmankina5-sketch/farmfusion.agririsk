@@ -292,7 +292,7 @@ def generate_crop_yield() -> pd.DataFrame:
 # ==============================================================================
 # 5. MARKET PRICES DATA
 # ==============================================================================
-def generate_market_prices(n_months=12) -> pd.DataFrame:
+def generate_market_prices() -> pd.DataFrame:
     """
     Monthly market prices modelled as a random walk around MSP-linked base.
     Demand shaped by season; supply inversely related to aridity.
@@ -310,20 +310,15 @@ def generate_market_prices(n_months=12) -> pd.DataFrame:
                 volatility   = RNG.uniform(0.04, 0.12)
                 price        = float(base_price)
 
-                for m in range(n_months):
-                    d = date(start.year, start.month, 1) + timedelta(days=m * 30)
-                    # Random walk step
-                    price = max(base_price * 0.30,
-                                price * (1 + trend * 0.02 + RNG.normal(0, volatility)))
-
-                    # Seasonal demand: Kharif crops high demand Oct–Nov; Rabi Dec–Mar
-                    month = d.month
-                    demand = float(np.clip(0.60 + 0.25 * np.sin(np.pi * month / 6) + RNG.normal(0, 0.08), 0.10, 1.0))
+                for season in SEASONS:
+                    # Seasonal demand based on crop fit
+                    season_fit = CROP_PROFILE[crop]["season_fit"][season]
+                    demand = float(np.clip(0.60 + 0.3 * season_fit + RNG.normal(0, 0.08), 0.10, 1.0))
                     supply = float(np.clip((1 - aridity * 0.5) * demand + RNG.normal(0, 0.10), 0.05, 1.0))
 
                     rows.append({
                         "state": state, "district": district, "crop": crop,
-                        "date":         d.isoformat(),
+                        "season": season,
                         "market_price": round(price, 1),
                         "demand":       round(demand, 3),
                         "supply":       round(supply, 3),
@@ -359,21 +354,22 @@ def generate_risk_features(soil_df, pest_df, yield_df, market_df, weather_df) ->
     ).reset_index()
     w = w.round(2)
 
-    # ── Aggregate market → 1 row per district/crop ─────────────────────────
-    m = market_df.groupby(["state","district","crop"]).agg(
+    # ── Aggregate market → 1 row per district/crop/season ─────────────────
+    m = market_df.groupby(["state","district","crop","season"]).agg(
         avg_market_price = ("market_price","mean"),
         price_std        = ("market_price","std"),
         avg_demand       = ("demand",      "mean"),
         avg_supply       = ("supply",      "mean"),
     ).reset_index()
     m = m.round(3)
-    m["price_cv"] = (m["price_std"] / m["avg_market_price"]).round(4)  # coefficient of variation
+    m["price_std"] = m["price_std"].fillna(0)
+    m["price_cv"] = (m["price_std"] / m["avg_market_price"]).fillna(0).round(4)  # coefficient of variation
 
     # ── Base join: pest × soil × weather × yield × market ──────────────────
     df = pest_df.merge(soil_df,   on=["state","district"],           how="left")
     df = df.merge(w,              on=["state","district"],           how="left")
     df = df.merge(yield_df,       on=["state","district","crop","season"], how="left")
-    df = df.merge(m,              on=["state","district","crop"],    how="left")
+    df = df.merge(m,              on=["state","district","crop","season"],    how="left")
 
     # ── Derived features (no risk scores here — those go in feature engineering) ──
     # Base yield per crop (lookup from CROP_PROFILE)
@@ -535,7 +531,7 @@ if __name__ == "__main__":
     soil_df    = generate_soil()
     pest_df    = generate_pest()
     yield_df   = generate_crop_yield()
-    market_df  = generate_market_prices(n_months=12)
+    market_df  = generate_market_prices()
     weather_df = generate_weather(n_years=1)
 
     features_df = generate_risk_features(soil_df, pest_df, yield_df, market_df, weather_df)

@@ -9,6 +9,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pandas as pd
 import numpy as np
 import joblib
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
@@ -17,30 +20,42 @@ from backend.utils.feature_engineering import CROP_BASE_YIELD
 from backend.config.config import Config
 
 def train():
-    path = os.path.join(Config.PROC_DATA_DIR, "kaggle_soil.csv")
+    path = os.path.join(Config.PROC_DATA_DIR, "risk_features.csv")
     df = pd.read_csv(path)
 
-    # Use the crop map to get a numerical proxy for crop type
-    df["crop_proxy"] = df["Crop Type"].map(CROP_BASE_YIELD).fillna(2000)
+    num_cols = ["soil_ph", "nitrogen", "phosphorus", "potassium", "soil_moisture", "npk_index", "ph_dev"]
+    cat_cols = ["state", "district", "crop"]
 
-    feat_cols = ["Temparature", "Humidity", "Moisture", "crop_proxy"]
-    target_cols = ["Nitrogen", "Potassium", "Phosphorous"]
+    feat_cols = num_cols + cat_cols
 
-    X = df[feat_cols].fillna(0)
-    y = df[target_cols].fillna(0)
+    X = df[feat_cols].copy()
+    for c in num_cols:
+        X[c] = X[c].fillna(0)
+    for c in cat_cols:
+        X[c] = X[c].fillna("Unknown").astype(str)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
+    y = df["soil_risk"].clip(0, 100)
 
-    model = RandomForestRegressor(n_estimators=100, max_depth=10, random_state=42, n_jobs=-1)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ('num', StandardScaler(), num_cols),
+            ('cat', OneHotEncoder(handle_unknown='ignore'), cat_cols)
+        ]
+    )
+
+    model = Pipeline([
+        ('preprocessor', preprocessor),
+        ('regressor', RandomForestRegressor(n_estimators=100, max_depth=8, random_state=42, n_jobs=-1))
+    ])
+
     model.fit(X_train, y_train)
 
     preds = model.predict(X_test)
-    
-    # Calculate metrics for each target
-    for i, target in enumerate(target_cols):
-        rmse = np.sqrt(mean_squared_error(y_test.iloc[:, i], preds[:, i]))
-        r2 = r2_score(y_test.iloc[:, i], preds[:, i])
-        print(f"[Soil Model - {target}] RMSE={rmse:.3f}  R2={r2:.4f}")
+    rmse  = np.sqrt(mean_squared_error(y_test, preds))
+    r2    = r2_score(y_test, preds)
+    print(f"[Soil Model] RMSE={rmse:.3f}  R²={r2:.4f}")
 
     os.makedirs(Config.MODELS_DIR, exist_ok=True)
     save_path = os.path.join(Config.MODELS_DIR, "soil_model.pkl")

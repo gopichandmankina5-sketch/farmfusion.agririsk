@@ -75,8 +75,8 @@ def get_current_weather(city: str, state: str, lat: float = None, lon: float = N
                             "temperature": temp,
                             "feels_like": feels_like,
                             "humidity": humidity,
-                            "rainfall": rainfall,
-                            "precipitation_probability": None, # Current Weather API doesn't provide POP reliably
+                            "rainfall": rainfall if rainfall is not None else 0.0,
+                            "precipitation_probability": 0, # Current Weather API doesn't provide POP reliably
                             "wind_speed": wind_speed_kmh,
                             "clouds": clouds,
                             "condition": condition,
@@ -136,8 +136,8 @@ def get_current_weather(city: str, state: str, lat: float = None, lon: float = N
                     "temperature": current.get("temperature_2m", 0),
                     "feels_like": current.get("apparent_temperature", 0),
                     "humidity": current.get("relative_humidity_2m", 0),
-                    "rainfall": current.get("rain", 0),
-                    "precipitation_probability": None,
+                    "rainfall": current.get("rain", 0.0),
+                    "precipitation_probability": 0,
                     "wind_speed": current.get("wind_speed_10m"),
                     "clouds": 0,
                     "condition": cond,
