@@ -4,21 +4,35 @@ export default {
   theme: {
     extend: {
       colors: {
+        white: '#FFFDF7', // warm white
+        gray: {
+          50: '#F6F3E8', // warm cream
+          100: '#F6F3E8', // warm cream
+          200: '#DDE4D9', // light border
+          300: '#DDE4D9', // light border
+          400: '#66736B', // muted text
+          500: '#66736B', // muted text
+          600: '#66736B', // muted text
+          700: '#17201B', // dark text
+          800: '#17201B', // dark text
+          900: '#17201B', // dark text
+          950: '#17201B', // dark text
+        },
         agri: {
-          50:  '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d',
-          950: '#052e16',
+          50:  '#F6F3E8', // warm cream
+          100: '#DDE4D9', // light border
+          200: '#DDE4D9', // light border
+          300: '#2E8B57', // secondary green
+          400: '#2E8B57', // secondary green
+          500: '#176B3A', // primary agricultural green
+          600: '#176B3A', // primary agricultural green
+          700: '#124A2A', // deep green
+          800: '#124A2A', // deep green
+          900: '#124A2A', // deep green
+          950: '#124A2A', // deep green
         },
         risk: {
-          low:      '#22c55e',
+          low:      '#2E8B57', // secondary green
           medium:   '#eab308',
           high:     '#f97316',
           critical: '#ef4444',
