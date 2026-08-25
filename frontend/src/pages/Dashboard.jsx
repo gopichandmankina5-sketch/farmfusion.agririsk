@@ -20,8 +20,11 @@ import { translateValue } from '../utils/translations'
 import { translateDistrict } from '../i18n/districtTranslations'
 import { translateAgriculture } from '../i18n/agricultureTranslations'
 import { getLocalizedName } from '../utils/localization'
-import { stateTranslations } from '../i18n/stateTranslations'
+import { stateTranslations, getStateList } from '../i18n/stateTranslations'
+import districtTranslations from '../i18n/districtTranslations'
+import { districtsByState } from '../data/indiaData'
 import { generateRecommendations } from '../utils/recommendationEngine'
+import SearchableSelect from '../components/SearchableSelect'
 
 // Default example data shown on dashboard load
 const DEFAULT_PAYLOAD = {
@@ -36,6 +39,66 @@ export default function Dashboard() {
   const [weatherData,  setWeatherData]  = useState(null)
   const [loading,      setLoading]      = useState(true)
   const [error,        setError]        = useState(null)
+
+  const [districts, setDistricts] = useState([])
+
+  // Fetch districts when state changes
+  useEffect(() => {
+    if (!payload.state) {
+      setDistricts([]);
+      return;
+    }
+
+    let active = true;
+    const loadDistricts = async () => {
+      const localDistricts = districtsByState[payload.state] || [];
+      
+      try {
+        const stateName = getStateList().find(s => s.id === payload.state)?.names.en || payload.state;
+        const response = await fetch(`http://localhost:5000/api/meta/states?state=${stateName}`);
+        
+        if (!response.ok) throw new Error('API failed');
+        const fetchedDistricts = await response.json();
+        
+        if (!active) return;
+        
+        if (Array.isArray(fetchedDistricts) && fetchedDistricts.length > 0) {
+          const cleanDistrictsStrings = fetchedDistricts.filter(Boolean).filter(district => {
+            const name = typeof district === "string" ? district : district.name;
+            if (!name) return false;
+            const lowerName = name.toLowerCase();
+            return (
+              !lowerName.includes("error") &&
+              !lowerName.includes("server") &&
+              !lowerName.includes("please try") &&
+              !lowerName.includes("internal") &&
+              name !== 'All'
+            );
+          }).map(district => typeof district === "string" ? district : district.name);
+          
+          const uniqueDistricts = [...new Set(cleanDistrictsStrings)];
+          const normalizedDistricts = uniqueDistricts.map(name => {
+            const normalizedValue = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+            if (districtTranslations[normalizedValue]) return districtTranslations[normalizedValue];
+            const match = Object.values(districtTranslations).find(t => t.names.en.toLowerCase() === name.toLowerCase());
+            if (match) return match;
+            return { id: normalizedValue, names: { en: name, hi: name, te: name, ta: name } };
+          });
+          
+          if (normalizedDistricts.length > 0) {
+            setDistricts(normalizedDistricts);
+            return;
+          }
+        }
+      } catch (err) {}
+
+      if (!active) return;
+      setDistricts(localDistricts);
+    };
+
+    loadDistricts();
+    return () => { active = false; };
+  }, [payload.state]);
 
   const fetchDashboard = useCallback(async () => {
     setLoading(true)
@@ -67,6 +130,29 @@ export default function Dashboard() {
 
   useEffect(() => { fetchDashboard() }, [fetchDashboard])
 
+  const handleStateChange = (stateId) => {
+    setPayload(p => ({ ...p, state: stateId, district: '' }))
+  }
+
+  const handleDistrictChange = (districtId) => {
+    setPayload(p => ({ ...p, district: districtId }))
+  }
+
+  useEffect(() => {
+    window.__AGRIRISK_FORM_CONTROLS__ = {
+      handleChange: (field, value) => {
+        if (field === 'state') handleStateChange(value);
+        if (field === 'district') handleDistrictChange(value);
+      },
+      handleAnalyze: fetchDashboard,
+      form: payload,
+      districts: districts.map(d => d.id)
+    };
+    return () => {
+      delete window.__AGRIRISK_FORM_CONTROLS__;
+    };
+  }, [payload, districts, fetchDashboard]);
+
   if (loading || !data) return <div className="p-8"><Loading /></div>
 
   if (error) return (
@@ -88,14 +174,6 @@ export default function Dashboard() {
 
   const trendChartData = (trend || []).map(t => ({ ...t, fill: '#22c55e' }))
 
-  const handleLocationChange = (e) => {
-    const val = e.target.value;
-    if (val === 'madurai') setPayload({ ...payload, state: 'tamil_nadu', district: 'madurai' });
-    if (val === 'chennai') setPayload({ ...payload, state: 'tamil_nadu', district: 'chennai' });
-    if (val === 'coimbatore') setPayload({ ...payload, state: 'tamil_nadu', district: 'coimbatore' });
-    if (val === 'vijayawada') setPayload({ ...payload, state: 'andhra_pradesh', district: 'vijayawada' });
-  }
-
   return (
     <div className="p-5 space-y-6 animate-fade-in max-w-7xl mx-auto">
       {/* Header */}
@@ -107,16 +185,27 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <select 
-            value={payload.district} 
-            onChange={handleLocationChange}
-            className="form-select text-sm py-2 pl-3 pr-8 rounded-lg border-gray-200 shadow-sm"
-          >
-             <option value="madurai">{translateDistrict('madurai', language)}, {getLocalizedName(stateTranslations['tamil_nadu'], language)}</option>
-             <option value="chennai">{translateDistrict('chennai', language)}, {getLocalizedName(stateTranslations['tamil_nadu'], language)}</option>
-             <option value="coimbatore">{translateDistrict('coimbatore', language)}, {getLocalizedName(stateTranslations['tamil_nadu'], language)}</option>
-             <option value="vijayawada">{translateDistrict('vijayawada', language)}, {getLocalizedName(stateTranslations['andhra_pradesh'], language)}</option>
-          </select>
+          <div className="flex gap-2">
+            <div className="w-48">
+              <SearchableSelect
+                value={payload.state}
+                options={getStateList()}
+                onChange={handleStateChange}
+                placeholder={t('select_state')}
+                type="state"
+              />
+            </div>
+            <div className="w-48">
+              <SearchableSelect
+                value={payload.district}
+                options={districts}
+                onChange={handleDistrictChange}
+                placeholder={t('select_district')}
+                disabled={!payload.state}
+                type="location"
+              />
+            </div>
+          </div>
           <button onClick={fetchDashboard} className="btn-ghost flex items-center gap-2">
             <RefreshCw className="w-4 h-4" /> {t('refresh')}
           </button>

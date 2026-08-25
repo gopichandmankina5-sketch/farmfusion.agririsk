@@ -153,5 +153,5 @@
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
-  filter: blur(8px) brightness(0.85);
+  filter: blur(3px) brightness(0.95) saturate(0.8) sepia(0.2);
 }

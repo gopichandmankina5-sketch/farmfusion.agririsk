@@ -26,9 +26,9 @@ export default function Navbar({ onMenuToggle, menuOpen }) {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 bg-gradient-to-br from-agri-600 to-agri-800 rounded-xl 
+            <div className="w-9 h-9 bg-agri-600 rounded-xl 
                             flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
-              <Sprout className="w-5 h-5 text-white" />
+              <Leaf className="w-5 h-5 text-white" />
             </div>
             <div className="leading-none">
               <span className="text-xl font-bold text-agri-800 tracking-tight">Agri</span>
