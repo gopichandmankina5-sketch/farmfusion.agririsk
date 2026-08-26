@@ -13,6 +13,7 @@ import RiskFactors from '../components/RiskFactors'
 import WeatherCard from '../components/WeatherCard'
 import RecommendationCard from '../components/RecommendationCard'
 import Loading from '../components/Loading'
+import SeasonalCalendar from '../components/SeasonalCalendar'
 import { useLanguage } from '../context/LanguageContext'
 import { translateValue } from '../utils/translations'
 import { getLocalizedName } from '../utils/localization'
@@ -25,36 +26,30 @@ import { generateRecommendations } from '../utils/recommendationEngine'
 import SearchableSelect from '../components/SearchableSelect'
 import indiaLocations from '../data/india_locations.json'
 
+let inMemoryRiskState = null;
+
 export default function RiskAnalysis() {
   const { t, language } = useLanguage()
-  const [form, setForm] = useState({ state: '', district: '', crop: '', season: '' })
-  const [result,  setResult]  = useState(null)
+  const [form, setForm] = useState(() => inMemoryRiskState?.payload || { state: '', district: '', crop: '', season: '' })
+  const [result, setResult] = useState(() => inMemoryRiskState?.result || null)
   const [loading, setLoading] = useState(false)
-  const [error,   setError]   = useState(null)
+  const [error, setError] = useState(null)
 
-  const [districts, setDistricts] = useState([])
+  const [districts, setDistricts] = useState(() => {
+    if (inMemoryRiskState?.payload?.state) {
+      return districtsByState[inMemoryRiskState.payload.state] || []
+    }
+    return []
+  })
+  
+  useEffect(() => {
+    // Cleanup any lingering localStorage from previous versions
+    localStorage.removeItem('agririsk_last_analysis');
+  }, []);
+  
+  // Fetch districts when state changes
   const [districtsLoading, setDistrictsLoading] = useState(false)
   const [districtError, setDistrictError] = useState(null)
-  
-  // Load saved state on mount
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('agririsk_last_analysis')
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        if (parsed.payload && parsed.result) {
-          setForm(parsed.payload)
-          setResult(parsed.result)
-          // Populate districts synchronously from local data to prevent flickering
-          if (parsed.payload.state) {
-            setDistricts(districtsByState[parsed.payload.state] || [])
-          }
-        }
-      }
-    } catch (e) {
-      console.error('Failed to parse saved analysis', e)
-    }
-  }, [])
 
   // Fetch districts when state changes
   useEffect(() => {
@@ -168,10 +163,10 @@ export default function RiskAnalysis() {
     try {
       const data = await apiService.analyzeRisk(form)
       setResult(data)
-      localStorage.setItem('agririsk_last_analysis', JSON.stringify({
+      inMemoryRiskState = {
         payload: form,
         result: data
-      }))
+      }
     } catch (err) {
       setError(err.message)
     } finally {
@@ -344,6 +339,9 @@ export default function RiskAnalysis() {
             <RiskCard title={t('production')} score={result.breakdown?.production || 0} icon="🌾" category="Production" compact />
           </div>
 
+          {/* Seasonal Risk Calendar */}
+          <SeasonalCalendar outlook={result.seasonal_outlook} />
+
           {/* Trend + Factors */}
           <div className="grid lg:grid-cols-2 gap-5">
             <div className="card">
@@ -394,11 +392,11 @@ export default function RiskAnalysis() {
           {/* Decision Simulator CTA */}
           <div className="mt-8 bg-gradient-to-br from-agri-50 to-agri-100 rounded-2xl p-6 border border-agri-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
              <div className="relative z-10 flex-1">
-               <h3 className="text-xl font-bold text-agri-900 mb-2">Explore What-If Scenarios</h3>
-               <p className="text-agri-800/80 text-sm">Want to see how your risk score would change if you adjusted soil nutrients, pest control, or faced different weather? Try the Decision Simulator.</p>
+               <h3 className="text-xl font-bold text-agri-900 mb-2">{t('explore_what_if')}</h3>
+               <p className="text-agri-800/80 text-sm">{t('what_if_desc')}</p>
              </div>
              <Link to="/decision-simulator" onClick={() => localStorage.setItem('agririsk_last_scenario', JSON.stringify(form))} className="relative z-10 shrink-0 bg-agri-700 hover:bg-agri-800 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all shadow flex items-center gap-2">
-                Open Decision Simulator <ChevronRight className="w-4 h-4" />
+                {t('open_decision_simulator')} <ChevronRight className="w-4 h-4" />
              </Link>
           </div>
         </div>

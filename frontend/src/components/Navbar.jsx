@@ -13,7 +13,7 @@ export default function Navbar({ onMenuToggle, menuOpen }) {
     { to: '/',               label: t('home'),         icon: Leaf },
     { to: '/dashboard',      label: t('dashboard'),    icon: BarChart3 },
     { to: '/risk-analysis',  label: t('risk_analysis'), icon: Activity },
-    { to: '/decision-simulator', label: 'Decision Simulator', icon: Activity },
+    { to: '/decision-simulator', label: t('decision_simulator'), icon: Activity },
     { to: '/regional-risk',  label: t('regional_risk'), icon: Map },
     { to: '/recommendations',label: t('recommendations'), icon: Lightbulb },
   ]

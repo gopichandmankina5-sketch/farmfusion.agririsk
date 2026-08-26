@@ -153,10 +153,10 @@ export default function DecisionSimulator() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl font-bold text-gray-900">Decision Simulator</h1>
-            <span className="px-2 py-0.5 rounded text-xs font-bold bg-gradient-to-r from-agri-600 to-green-400 text-white shadow-sm">AI-Powered</span>
+            <h1 className="text-2xl font-bold text-gray-900">{t("decision_simulator")}</h1>
+            <span className="px-2 py-0.5 rounded text-xs font-bold bg-gradient-to-r from-agri-600 to-green-400 text-white shadow-sm">{t("ai_powered")}</span>
           </div>
-          <p className="text-sm text-gray-500">Explore how farming decisions could change your predicted agricultural risk.</p>
+          <p className="text-sm text-gray-500">{t("feature_p_desc")}</p>
         </div>
         <div className="flex gap-3">
           <button onClick={handleReset} className="btn-ghost flex items-center gap-2">
@@ -164,7 +164,7 @@ export default function DecisionSimulator() {
           </button>
           <button onClick={runSimulation} disabled={loading} className="btn-primary flex items-center gap-2 shadow-lg hover:shadow-xl transition-all">
             {loading ? <Loading className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            Run AI Simulation
+            {t("run_ai_simulation")}
           </button>
         </div>
       </div>
@@ -181,23 +181,23 @@ export default function DecisionSimulator() {
         <div className="lg:col-span-4 space-y-6">
           
           <div className="card p-5">
-            <h3 className="font-semibold text-gray-800 mb-4">Quick Scenarios</h3>
+            <h3 className="font-semibold text-gray-800 mb-4">{t("quick_scenarios")}</h3>
             <div className="flex flex-wrap gap-2">
-              <button onClick={()=>applyPreset('improve_soil')} className="px-3 py-1.5 text-xs rounded-full bg-agri-50 text-agri-700 border border-agri-100 hover:bg-agri-100 transition-colors">🌱 Improve Soil</button>
-              <button onClick={()=>applyPreset('heavy_rain')} className="px-3 py-1.5 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100 transition-colors">🌧️ Heavy Rain</button>
-              <button onClick={()=>applyPreset('heat_stress')} className="px-3 py-1.5 text-xs rounded-full bg-orange-50 text-orange-700 border border-orange-100 hover:bg-orange-100 transition-colors">☀️ Heat Stress</button>
-              <button onClick={()=>applyPreset('high_pest')} className="px-3 py-1.5 text-xs rounded-full bg-red-50 text-red-700 border border-red-100 hover:bg-red-100 transition-colors">🐛 High Pest Pressure</button>
-              <button onClick={()=>applyPreset('market_drop')} className="px-3 py-1.5 text-xs rounded-full bg-purple-50 text-purple-700 border border-purple-100 hover:bg-purple-100 transition-colors">💰 Market Price Drop</button>
+              <button onClick={()=>applyPreset('improve_soil')} className="px-3 py-1.5 text-xs rounded-full bg-agri-50 text-agri-700 border border-agri-100 hover:bg-agri-100 transition-colors">🌱 {t("improve_soil")}</button>
+              <button onClick={()=>applyPreset('heavy_rain')} className="px-3 py-1.5 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100 transition-colors">🌧️ {t("heavy_rain")}</button>
+              <button onClick={()=>applyPreset('heat_stress')} className="px-3 py-1.5 text-xs rounded-full bg-orange-50 text-orange-700 border border-orange-100 hover:bg-orange-100 transition-colors">☀️ {t("heat_stress")}</button>
+              <button onClick={()=>applyPreset('high_pest')} className="px-3 py-1.5 text-xs rounded-full bg-red-50 text-red-700 border border-red-100 hover:bg-red-100 transition-colors">🐛 {t("high_pest_pressure")}</button>
+              <button onClick={()=>applyPreset('market_drop')} className="px-3 py-1.5 text-xs rounded-full bg-purple-50 text-purple-700 border border-purple-100 hover:bg-purple-100 transition-colors">💰 {t("market_price_drop")}</button>
             </div>
           </div>
 
           <div className="card p-5">
-            <h3 className="font-semibold text-gray-800 mb-4">Build Your Scenario</h3>
+            <h3 className="font-semibold text-gray-800 mb-4">{t("build_your_scenario")}</h3>
             
             <div className="space-y-6">
               {/* Location / Crop overrides */}
               <div className="space-y-3">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Context</h4>
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t("context")}</h4>
                 <SearchableSelect 
                   value={scenario.state || current.state} 
                   onChange={(v) => { handleOverride('state', v); handleOverride('district', ''); }} 
@@ -219,27 +219,27 @@ export default function DecisionSimulator() {
               {/* Soil */}
               {data && (
                 <div className="space-y-3 pt-4 border-t border-gray-100">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">🌱 Soil Conditions</h4>
-                  {renderSlider('Nitrogen', 'nitrogen', 0, 300, 'kg/ha', data.current.soil_data.nitrogen)}
-                  {renderSlider('Soil Moisture', 'soil_moisture', 0, 100, '%', data.current.soil_data.moisture)}
-                  {renderSlider('pH Level', 'soil_ph', 0, 14, '', data.current.soil_data.ph)}
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">🌱 {t("soil_conditions")}</h4>
+                  {renderSlider(t("nitrogen"), 'nitrogen', 0, 300, 'kg/ha', data.current.soil_data.nitrogen)}
+                  {renderSlider(t("soil_moisture"), 'soil_moisture', 0, 100, '%', data.current.soil_data.moisture)}
+                  {renderSlider(t("ph_level"), 'soil_ph', 0, 14, '', data.current.soil_data.ph)}
                 </div>
               )}
 
               {/* Weather */}
               {data && (
                 <div className="space-y-3 pt-4 border-t border-gray-100">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">🌦 Weather</h4>
-                  {renderSlider('Rainfall', 'rainfall', 0, 1000, 'mm', data.current.weather_data.rainfall)}
-                  {renderSlider('Temperature', 'temperature', 0, 50, '°C', data.current.weather_data.temperature)}
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">🌦 {t("weather")}</h4>
+                  {renderSlider(t("rainfall"), 'rainfall', 0, 1000, 'mm', data.current.weather_data.rainfall)}
+                  {renderSlider(t("temperature"), 'temperature', 0, 50, '°C', data.current.weather_data.temperature)}
                 </div>
               )}
 
               {/* Market */}
               {data && (
                 <div className="space-y-3 pt-4 border-t border-gray-100">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">💰 Market</h4>
-                  {renderSlider('Market Price', 'market_price', 0, 10000, '₹/q', data.current.market_data.price)}
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">💰 {t("market")}</h4>
+                  {renderSlider(t("market_price_details"), 'market_price', 0, 10000, '₹/q', data.current.market_data.price)}
                 </div>
               )}
             </div>
@@ -260,7 +260,7 @@ export default function DecisionSimulator() {
               {/* Top Level Comparison */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="card p-5 flex flex-col items-center justify-center text-center">
-                  <p className="text-sm text-gray-500 font-medium mb-1">Current Risk</p>
+                  <p className="text-sm text-gray-500 font-medium mb-1">{t("current_risk")}</p>
                   <p className="text-4xl font-bold text-gray-800">{data.comparison.overall.current.toFixed(1)}</p>
                   <p className="text-xs text-gray-400 mt-2">{translateAgriculture('crop', current.crop, language)} • {translateDistrict(current.district, language)}</p>
                 </div>
@@ -278,11 +278,11 @@ export default function DecisionSimulator() {
                 </div>
 
                 <div className="card p-5 flex flex-col items-center justify-center text-center ring-2 ring-agri-100 bg-surface">
-                  <p className="text-sm text-gray-500 font-medium mb-1">Simulated Risk</p>
+                  <p className="text-sm text-gray-500 font-medium mb-1">{t("simulated_risk")}</p>
                   <p className={`text-4xl font-bold ${data.comparison.overall.change < -2 ? 'text-green-600' : data.comparison.overall.change > 2 ? 'text-red-600' : 'text-gray-800'}`}>
                     {data.comparison.overall.scenario.toFixed(1)}
                   </p>
-                  <p className="text-xs text-gray-400 mt-2">Model Prediction</p>
+                  <p className="text-xs text-gray-400 mt-2">{t("model_prediction")}</p>
                 </div>
               </div>
 
@@ -292,7 +292,7 @@ export default function DecisionSimulator() {
                   <Activity className="w-24 h-24" />
                 </div>
                 <h3 className="font-bold text-lg mb-3 flex items-center gap-2 text-agri-50">
-                  🧠 AgriRisk Insight
+                  🧠 {t("agririsk_insight")}
                 </h3>
                 <div className="space-y-2 relative z-10">
                   {data.insights.map((insight, i) => (
@@ -306,7 +306,7 @@ export default function DecisionSimulator() {
 
               {/* Detailed Breakdown */}
               <div className="card p-5">
-                <h3 className="font-semibold text-gray-800 mb-6">What Changed?</h3>
+                <h3 className="font-semibold text-gray-800 mb-6">{t("what_changed")}</h3>
                 <div className="space-y-6">
                   {['soil', 'production', 'weather', 'market', 'pest'].map(cat => {
                     const comp = data.comparison[cat]
@@ -315,7 +315,7 @@ export default function DecisionSimulator() {
                     return (
                       <div key={cat} className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="font-medium text-gray-700 capitalize">{cat} Risk</span>
+                          <span className="font-medium text-gray-700 capitalize">{t(cat + '_risk') || cat + ' Risk'}</span>
                           <span className={`font-bold flex items-center gap-1 ${getChangeColor(comp.change)} px-2 py-0.5 rounded`}>
                             {comp.change > 0 ? '+' : ''}{comp.change.toFixed(1)}
                           </span>
@@ -331,8 +331,8 @@ export default function DecisionSimulator() {
                           )}
                         </div>
                         <div className="flex justify-between text-xs text-gray-400">
-                          <span>Current: {comp.current.toFixed(1)}</span>
-                          <span>Scenario: {comp.scenario.toFixed(1)}</span>
+                          <span>{t("current")}: {comp.current.toFixed(1)}</span>
+                          <span>{t("scenario")}: {comp.scenario.toFixed(1)}</span>
                         </div>
                       </div>
                     )
@@ -345,7 +345,7 @@ export default function DecisionSimulator() {
           {/* History */}
           {history.length > 0 && (
             <div className="card p-5">
-              <h3 className="font-semibold text-gray-800 mb-4">Recent Simulations</h3>
+              <h3 className="font-semibold text-gray-800 mb-4">{t("recent_simulations")}</h3>
               <div className="divide-y divide-gray-100">
                 {history.map((h, i) => (
                   <div key={i} className="py-3 flex justify-between items-center">
