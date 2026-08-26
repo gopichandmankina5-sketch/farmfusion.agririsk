@@ -26,15 +26,14 @@ export default function Navbar({ onMenuToggle, menuOpen }) {
       <div className="max-w-screen-xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 bg-agri-600 rounded-xl 
-                            flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
-              <Leaf className="w-5 h-5 text-white" />
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-[52px] h-[52px] rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow">
+              <img src="/logo.jpg" alt="AgriRisk Logo" className="w-full h-full object-cover" />
             </div>
             <div className="leading-none">
-              <span className="text-xl font-bold text-agri-800 tracking-tight">Agri</span>
-              <span className="text-xl font-bold text-agri-500 tracking-tight">Risk</span>
-              <p className="text-[10px] text-gray-400 font-medium mt-0.5 tracking-wide hidden sm:block">
+              <span className="text-[28px] font-extrabold text-[#252525] tracking-tight">Agri</span>
+              <span className="text-[28px] font-extrabold text-[#C65A28] tracking-tight">Risk</span>
+              <p className="text-[12px] text-[#6F655D] font-semibold mt-1 tracking-wide hidden sm:block">
                 Agricultural Intelligence
               </p>
             </div>

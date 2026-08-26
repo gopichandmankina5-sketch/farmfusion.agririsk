@@ -51,7 +51,7 @@ export default function WeatherCard({ data }) {
         </h3>
         <div className="text-right flex flex-col items-end gap-1">
           <span className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-agri-600 bg-agri-50 px-2 py-1 rounded">
-            <span className={`w-1.5 h-1.5 rounded-full ${data.is_fallback ? 'bg-orange-500' : 'bg-green-500 animate-pulse'}`}></span>
+            <span className={`w-1.5 h-1.5 rounded-full ${data.is_fallback ? 'bg-orange-500' : 'bg-agri-500 animate-pulse'}`}></span>
             {data.is_fallback ? 'LIVE • OPEN-METEO • FALLBACK' : 'LIVE • OPENWEATHERMAP'}
           </span>
         </div>

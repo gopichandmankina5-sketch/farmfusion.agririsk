@@ -1,7 +1,7 @@
 // ── Risk level helpers ──────────────────────────────────────────────────────
 
 export const RISK_LEVELS = {
-  LOW:      { label: 'LOW',      color: '#22c55e', bg: 'bg-green-100',  text: 'text-green-700',  border: 'border-green-300' },
+  LOW:      { label: 'LOW',      color: '#C65A28', bg: 'bg-agri-100',  text: 'text-agri-700',  border: 'border-agri-300' },
   MEDIUM:   { label: 'MEDIUM',   color: '#eab308', bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-300' },
   HIGH:     { label: 'HIGH',     color: '#f97316', bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' },
   CRITICAL: { label: 'CRITICAL', color: '#ef4444', bg: 'bg-red-100',    text: 'text-red-700',    border: 'border-red-300' },
@@ -13,7 +13,7 @@ export function getRiskMeta(level) {
 
 export function getRiskColor(score) {
   const rounded = Math.round(score)
-  if (rounded <= 30) return '#22c55e'
+  if (rounded <= 30) return '#C65A28'
   if (rounded <= 60) return '#eab308'
   if (rounded <= 80) return '#f97316'
   return '#ef4444'
@@ -79,7 +79,7 @@ export function getCategoryColor(category) {
     pest:       '#f97316',
     soil:       '#84cc16',
     market:     '#a855f7',
-    production: '#22c55e',
+    production: '#C65A28',
   }
   return colors[category] || '#6b7280'
 }
@@ -102,7 +102,7 @@ export function getPriorityMeta(priority) {
     critical: { color: 'text-red-700',    bg: 'bg-red-50',    border: 'border-red-200',    dot: 'bg-red-500'    },
     high:     { color: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-200', dot: 'bg-orange-500' },
     medium:   { color: 'text-yellow-700', bg: 'bg-yellow-50', border: 'border-yellow-200', dot: 'bg-yellow-500' },
-    low:      { color: 'text-green-700',  bg: 'bg-green-50',  border: 'border-green-200',  dot: 'bg-green-500'  },
+    low:      { color: 'text-agri-700',  bg: 'bg-agri-50',  border: 'border-agri-200',  dot: 'bg-agri-500'  },
   }
   return map[priority] || map.medium
 }

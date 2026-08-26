@@ -186,7 +186,7 @@ export default function Dashboard() {
   const { risk_score, risk_level, breakdown, factors, recommendations, trend,
           soil_data, pest_data, market_data } = data
 
-  const trendChartData = (trend || []).map(t => ({ ...t, fill: '#22c55e' }))
+  const trendChartData = (trend || []).map(t => ({ ...t, fill: '#C65A28' }))
 
   return (
     <div className="p-5 space-y-6 animate-fade-in max-w-7xl mx-auto">
@@ -282,8 +282,8 @@ export default function Dashboard() {
             <AreaChart data={trendChartData}>
               <defs>
                 <linearGradient id="riskGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#16a34a" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#16a34a" stopOpacity={0} />
+                  <stop offset="5%"  stopColor="#C65A28" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#C65A28" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
@@ -293,8 +293,8 @@ export default function Dashboard() {
                 contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb', fontSize: '12px' }}
                 formatter={(v) => [`${v}`, translateValue('Risk Score', language)]}
               />
-              <Area type="monotone" dataKey="score" stroke="#16a34a" strokeWidth={2.5}
-                    fill="url(#riskGrad)" dot={{ r: 4, fill: '#16a34a', strokeWidth: 2, stroke: 'white' }} />
+              <Area type="monotone" dataKey="score" stroke="#C65A28" strokeWidth={2.5}
+                    fill="url(#riskGrad)" dot={{ r: 4, fill: '#C65A28', strokeWidth: 2, stroke: 'white' }} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
