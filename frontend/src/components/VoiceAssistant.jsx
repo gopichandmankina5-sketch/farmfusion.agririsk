@@ -447,6 +447,11 @@ export default function VoiceAssistant() {
         navigate('/dashboard');
         return;
       }
+      if (intent === INTENTS.NAVIGATE_DECISION_SIMULATOR) {
+        provideResponse(getVoiceResponse('NAVIGATE_DECISION_SIMULATOR', detectedLang), detectedLang, { lastIntent: intent, lastTopic: 'NAVIGATION' });
+        navigate('/decision-simulator');
+        return;
+      }
       if (intent === INTENTS.NAVIGATE_REGIONAL_RISK) {
         provideResponse(getVoiceResponse('NAVIGATE_REGIONAL_RISK', detectedLang), detectedLang, { lastIntent: intent, lastTopic: 'NAVIGATION' });
         navigate('/regional-risk');

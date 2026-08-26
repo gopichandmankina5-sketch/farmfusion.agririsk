@@ -23,6 +23,7 @@ export const INTENTS = {
   NAVIGATE_RECOMMENDATIONS: 'NAVIGATE_RECOMMENDATIONS',
   NAVIGATE_DASHBOARD: 'NAVIGATE_DASHBOARD',
   NAVIGATE_WEATHER: 'NAVIGATE_WEATHER',
+  NAVIGATE_DECISION_SIMULATOR: 'NAVIGATE_DECISION_SIMULATOR',
 
   FOLLOW_UP_EXPLANATION: 'FOLLOW_UP_EXPLANATION',
   FOLLOW_UP_RECOMMENDATION: 'FOLLOW_UP_RECOMMENDATION',
@@ -158,7 +159,7 @@ export const parseVoiceCommand = (text, context = {}) => {
   // ==========================================
   // EXPLICIT NAVIGATION DETECTION
   // ==========================================
-  const isNavigation = hasAny(['open', 'go to', 'show', 'navigate', 'తెరువు', 'చూపించు', 'వెళ్ళు', 'திற', 'காட்டு', 'செல்', 'खोलो', 'खोलें', 'दिखाओ', 'जाएं']);
+  const isNavigation = hasAny(['open', 'go to', 'show', 'navigate', 'take me', 'తెరువు', 'తెరవండి', 'చూపించు', 'వెళ్ళు', 'వెళ్ళండి', 'திற', 'காட்டு', 'செல்', 'खोलो', 'खोलें', 'दिखाओ', 'जाएं', 'जाओ']);
 
   // ==========================================
   // DOMAIN INTENTS (Navigation vs Conversational)
@@ -261,6 +262,11 @@ export const parseVoiceCommand = (text, context = {}) => {
   // Recommendations
   if (hasAny(['recommendation', 'recommendations', 'సూచన', 'సూచనలు', 'సిఫార్సు', 'సిఫార్సులు', 'பரிந்துரை', 'பரிந்துரைகள்', 'सुझाव', 'सिफारिश'])) {
     return isNavigation ? INTENTS.NAVIGATE_RECOMMENDATIONS : INTENTS.RECOMMENDATION_INFORMATION;
+  }
+
+  // Decision Simulator
+  if (hasAny(['decision simulator', 'డెసిషన్ సిమ్యులేటర్', 'டிசிஷன் சிமுலேட்ட', 'डिसीजन सिम्युलेटर'])) {
+    return isNavigation ? INTENTS.NAVIGATE_DECISION_SIMULATOR : INTENTS.UNKNOWN;
   }
 
   // Crop Information

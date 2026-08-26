@@ -15,6 +15,7 @@ from backend.services.prediction_service import (
 )
 from backend.services.recommendation_service import generate_recommendations
 from backend.utils.feature_engineering import CROP_BASE_YIELD, CROP_BASE_PRICE
+from backend.utils.seasonal_projection import generate_seasonal_outlook
 
 
 def analyze_risk(state: str, district: str, crop: str, season: str, overrides: dict = None) -> dict:
@@ -58,6 +59,12 @@ def analyze_risk(state: str, district: str, crop: str, season: str, overrides: d
     # Step 4: Weighted overall risk (ML or rule-based)
     overall = calc_overall_risk(w_risk, pe_risk, s_risk, m_risk, pr_risk)
 
+    # Step 4.5: Generate Seasonal Outlook (premium feature)
+    seasonal_outlook = generate_seasonal_outlook(
+        season=season, crop=crop,
+        base_w=w_risk, base_pe=pe_risk, base_s=s_risk, base_m=m_risk, base_pr=pr_risk
+    )
+
     # Note: ML-refined prediction (predict_risk_score) removed per user constraints (no fake target labels)
     # The overall risk score will be purely deterministic/rule-based based on the component risks.
 
@@ -96,6 +103,7 @@ def analyze_risk(state: str, district: str, crop: str, season: str, overrides: d
         "factors":      factors,
         "recommendations": recs,
         "trend":        trend,
+        "seasonal_outlook": seasonal_outlook,
         "weather_data": data.get("weather_data", {
             "temperature": data["avg_temperature"],
             "rainfall":    data["avg_rainfall"],

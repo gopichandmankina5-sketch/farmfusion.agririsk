@@ -24,7 +24,7 @@ export default function Sidebar() {
       <div className="p-4 pt-6">
         {/* Section: Navigation */}
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3 px-4">
-          Navigation
+          {t('navigation') || 'Navigation'}
         </p>
         <nav className="space-y-1">
           {navItems.map(({ to, label, icon: Icon }) => (
