@@ -34,9 +34,16 @@ def analyze_risk(state: str, district: str, crop: str, season: str, overrides: d
 
     # Step 2: Apply simulation overrides (Decision Simulator feature)
     if overrides:
+        # Map frontend override keys to canonical backend feature names
+        key_map = {
+            "rainfall": "avg_rainfall",
+            "temperature": "avg_temperature",
+            "market_price": "avg_market_price"
+        }
         for key, value in overrides.items():
             if value is not None:
-                raw[key] = value
+                mapped_key = key_map.get(key, key)
+                raw[mapped_key] = float(value) if isinstance(value, (int, float, str)) and str(value).replace('.','',1).isdigit() else value
 
     # Step 3: Engineer features
     data = engineer_features(raw.copy())
