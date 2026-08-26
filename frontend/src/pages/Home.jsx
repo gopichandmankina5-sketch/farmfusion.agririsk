@@ -1,7 +1,10 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Activity, Map, BarChart3, Lightbulb, ArrowRight, Shield, Zap, Globe, Sprout } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
+import { districtsByState } from '../data/indiaData.js'
+import { crops } from '../i18n/agricultureTranslations.js'
+import { RISK_LEVELS } from '../utils/riskUtils.js'
 
 export default function Home() {
   const { t, language } = useLanguage()
@@ -23,7 +26,7 @@ export default function Home() {
       icon: '🌱',
       title: t('Soil Risk'),
       desc: t('feature_s_desc'),
-      color: 'bg-green-50 text-green-600',
+      color: 'bg-agri-50 text-agri-600',
     },
     {
       icon: '📈',
@@ -66,12 +69,19 @@ export default function Home() {
     },
   ]
 
-  const stats = [
-    { value: '10',  label: t('states_covered') },
-    { value: '100', label: t('districts') },
-    { value: '15',  label: t('crops_tracked') },
-    { value: '5',   label: t('risk_categories') },
-  ]
+  const stats = useMemo(() => {
+    const uniqueDistricts = new Set();
+    Object.values(districtsByState).forEach(districts => {
+      districts.forEach(d => uniqueDistricts.add(d.id));
+    });
+
+    return [
+      { value: Object.keys(districtsByState).length.toString(),  label: t('states_covered') },
+      { value: uniqueDistricts.size.toString(), label: t('districts') },
+      { value: crops.length.toString(),  label: t('crops_tracked') },
+      { value: Object.keys(RISK_LEVELS).length.toString(),   label: t('risk_categories') },
+    ];
+  }, [t]);
 
   return (
     <div className="animate-fade-in">
@@ -79,13 +89,13 @@ export default function Home() {
       <section className="relative px-6 py-24 sm:py-32 lg:px-8 text-center flex flex-col justify-center min-h-[70vh]">
         <div className="absolute inset-0 bg-white/20 backdrop-blur-[2px] z-0 pointer-events-none"></div>
         <div className="mx-auto max-w-4xl relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 backdrop-blur-md border border-green-200 text-green-700 text-sm font-medium mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 backdrop-blur-md border border-agri-200 text-agri-700 text-sm font-medium mb-8">
             <Sprout className="w-4 h-4" />
             <span>{t('powered_by_ml')}</span>
           </div>
 
           <h1 className="text-6xl sm:text-7xl font-extrabold tracking-tight text-gray-900 drop-shadow-sm mb-4">
-            Agri<span className="text-green-600">Risk</span>
+            Agri<span className="text-agri-500">Risk</span>
           </h1>
           <p className="text-2xl sm:text-3xl font-bold text-gray-800 drop-shadow-sm mb-6">
             {t('ai_powered_intel')}
@@ -95,7 +105,7 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/risk-analysis" className="bg-[#22c55e] hover:bg-[#16a34a] text-white px-6 py-3 rounded-md text-base font-semibold shadow-lg transition-colors flex items-center justify-center gap-2">
+            <Link to="/risk-analysis" className="bg-agri-500 hover:bg-agri-700 text-white px-6 py-3 rounded-md text-base font-semibold shadow-lg transition-colors flex items-center justify-center gap-2">
               <Activity className="w-5 h-5" />
               {t('analyze_now')}
             </Link>
@@ -111,7 +121,7 @@ export default function Home() {
             {stats.map(({ value, label }) => (
               <div key={label} className="flex flex-col items-center">
                 <dt className="text-sm font-medium text-gray-600 mt-1">{label}</dt>
-                <dd className="text-3xl font-bold tracking-tight text-green-600">{value}</dd>
+                <dd className="text-3xl font-bold tracking-tight text-agri-500">{value}</dd>
               </div>
             ))}
           </div>

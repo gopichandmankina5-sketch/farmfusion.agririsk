@@ -289,7 +289,7 @@ export default function RiskAnalysis() {
             ${result.risk_level === 'CRITICAL' ? 'bg-red-50 border-red-200' :
               result.risk_level === 'HIGH'     ? 'bg-orange-50 border-orange-200' :
               result.risk_level === 'MEDIUM'   ? 'bg-yellow-50 border-yellow-200' :
-                                                 'bg-green-50 border-green-200'}`}>
+                                                 'bg-agri-50 border-agri-200'}`}>
             <div>
               <p className="text-sm font-medium text-gray-500">
                 📍 {translateDistrict(result.district, language)}, {translateDistrict(result.state, language)} · {translateAgriculture('crop', result.crop, language)} · {translateAgriculture('season', result.season, language)}
@@ -300,7 +300,7 @@ export default function RiskAnalysis() {
                   result.risk_level === 'CRITICAL' ? 'text-red-600' :
                   result.risk_level === 'HIGH'     ? 'text-orange-600' :
                   result.risk_level === 'MEDIUM'   ? 'text-yellow-600' :
-                                                     'text-green-600'
+                                                     'text-agri-600'
                 }>
                   {translateValue(result.risk_level, language)}
                 </span>
@@ -310,7 +310,7 @@ export default function RiskAnalysis() {
               <p className="text-5xl font-extrabold" style={{
                 color: result.risk_level === 'CRITICAL' ? '#dc2626' :
                        result.risk_level === 'HIGH'     ? '#ea580c' :
-                       result.risk_level === 'MEDIUM'   ? '#ca8a04' : '#16a34a'
+                       result.risk_level === 'MEDIUM'   ? '#ca8a04' : '#C65A28'
               }}>
                 {Math.round(result.risk_score)}
               </p>

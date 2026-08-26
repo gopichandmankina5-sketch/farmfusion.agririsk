@@ -4,32 +4,32 @@ export default {
   theme: {
     extend: {
       colors: {
-        white: '#FFFDF7', // warm white
+        white: '#FFFDF8', // warm white
         gray: {
-          50: '#F6F3E8', // warm cream
-          100: '#F6F3E8', // warm cream
-          200: '#DDE4D9', // light border
-          300: '#DDE4D9', // light border
-          400: '#66736B', // muted text
-          500: '#66736B', // muted text
-          600: '#66736B', // muted text
-          700: '#17201B', // dark text
-          800: '#17201B', // dark text
-          900: '#17201B', // dark text
-          950: '#17201B', // dark text
+          50: '#F7F1E7', // warm cream
+          100: '#F7F1E7',
+          200: '#DED3C5', // border
+          300: '#DED3C5',
+          400: '#75665B', // muted brown
+          500: '#75665B',
+          600: '#75665B',
+          700: '#252525', // dark charcoal
+          800: '#252525',
+          900: '#252525',
+          950: '#252525',
         },
         agri: {
-          50:  '#F6F3E8', // warm cream
-          100: '#DDE4D9', // light border
-          200: '#DDE4D9', // light border
-          300: '#2E8B57', // secondary green
-          400: '#2E8B57', // secondary green
-          500: '#176B3A', // primary agricultural green
-          600: '#176B3A', // primary agricultural green
-          700: '#124A2A', // deep green
-          800: '#124A2A', // deep green
-          900: '#124A2A', // deep green
-          950: '#124A2A', // deep green
+          50:  '#F7F1E7', // warm cream
+          100: '#DED3C5', // border
+          200: '#DED3C5',
+          300: '#C65A28', // primary terracotta
+          400: '#C65A28',
+          500: '#C65A28',
+          600: '#C65A28',
+          700: '#963F1F', // dark terracotta
+          800: '#963F1F',
+          900: '#963F1F',
+          950: '#963F1F',
         },
         risk: {
           low:      '#2E8B57', // secondary green

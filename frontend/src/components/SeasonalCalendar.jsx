@@ -31,7 +31,7 @@ export default function SeasonalCalendar({ outlook = [] }) {
       case 'CRITICAL': return 'bg-red-50 text-red-700 font-bold';
       case 'HIGH': return 'bg-orange-50 text-orange-700 font-semibold';
       case 'MEDIUM': return 'bg-yellow-50 text-yellow-700 font-medium';
-      case 'LOW': return 'bg-green-50 text-green-700';
+      case 'LOW': return 'bg-agri-50 text-agri-700';
       default: return 'bg-gray-50 text-gray-700';
     }
   };

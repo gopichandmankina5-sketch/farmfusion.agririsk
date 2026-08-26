@@ -35,7 +35,7 @@ export default function RegionalRisk() {
   }, {})
 
   const levelMeta = {
-    LOW:      { color: 'text-green-600',  bg: 'bg-green-50',  border: 'border-green-200' },
+    LOW:      { color: 'text-agri-600',  bg: 'bg-agri-50',  border: 'border-agri-200' },
     MEDIUM:   { color: 'text-yellow-600', bg: 'bg-yellow-50', border: 'border-yellow-200' },
     HIGH:     { color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200' },
     CRITICAL: { color: 'text-red-600',    bg: 'bg-red-50',    border: 'border-red-200' },
@@ -98,7 +98,7 @@ export default function RegionalRisk() {
                   <p className="text-3xl font-bold" style={{
                     color: selected.level === 'CRITICAL' ? '#dc2626' :
                            selected.level === 'HIGH'     ? '#ea580c' :
-                           selected.level === 'MEDIUM'   ? '#ca8a04' : '#16a34a'
+                           selected.level === 'MEDIUM'   ? '#ca8a04' : '#C65A28'
                   }}>
                     {selected.score}
                   </p>

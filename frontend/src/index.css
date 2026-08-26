@@ -121,11 +121,11 @@
 
 /* ── Hero gradient ───────────────────────────────── */
 .hero-gradient {
-  background: linear-gradient(135deg, #052e16 0%, #14532d 40%, #166534 70%, #15803d 100%);
+  background: linear-gradient(135deg, #263746 0%, #3e261f 40%, #8F3F28 70%, #B85C38 100%);
 }
 .hero-pattern {
-  background-image: radial-gradient(circle at 20% 80%, rgba(34,197,94,0.15) 0%, transparent 50%),
-                    radial-gradient(circle at 80% 20%, rgba(134,239,172,0.1) 0%, transparent 50%);
+  background-image: radial-gradient(circle at 20% 80%, rgba(184,92,56,0.15) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(226,135,101,0.1) 0%, transparent 50%);
 }
 
 /* ── Custom Theme Elements ───────────────────────── */
@@ -153,5 +153,55 @@
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
-  filter: blur(3px) brightness(0.95) saturate(0.8) sepia(0.2);
+  filter: blur(3px) brightness(0.98) saturate(0.85) sepia(0.35) hue-rotate(-5deg);
+}
+
+/* ── Hardcoded Green Overrides to Terracotta ────────────────────── */
+/* Text */
+.text-green-500:not(.badge-low):not(.risk-indicator), .text-green-600:not(.badge-low):not(.risk-indicator), .text-green-700:not(.badge-low):not(.risk-indicator), .text-emerald-500, .text-emerald-600, .text-emerald-700, .text-\[\#22c55e\], .text-\[\#16a34a\] {
+  color: #C65A28 !important;
+}
+.group:hover .group-hover\:text-green-600:not(.badge-low) {
+  color: #C65A28 !important;
+}
+
+/* Backgrounds */
+.bg-green-50:not(.badge-low):not(.risk-indicator), .bg-emerald-50 {
+  background-color: #F7F1E7 !important; /* Cream */
+}
+.bg-green-100:not(.badge-low):not(.risk-indicator), .bg-emerald-100 {
+  background-color: #E8A17E !important; /* Light Terracotta */
+}
+.bg-green-400:not(.badge-low):not(.risk-indicator), .bg-green-500:not(.badge-low):not(.risk-indicator), .bg-green-600:not(.badge-low):not(.risk-indicator), .bg-emerald-500, .bg-emerald-600, .bg-\[\#22c55e\], .bg-\[\#16a34a\] {
+  background-color: #C65A28 !important; /* Primary Terracotta */
+}
+.bg-green-700:not(.badge-low):not(.risk-indicator), .bg-emerald-700 {
+  background-color: #963F1F !important; /* Dark Terracotta */
+}
+.hover\:bg-green-50:hover:not(.badge-low), .focus\:bg-green-50:focus:not(.badge-low) {
+  background-color: #F7F1E7 !important;
+}
+.hover\:bg-green-600:hover:not(.badge-low), .hover\:bg-\[\#16a34a\]:hover {
+  background-color: #963F1F !important;
+}
+
+/* Borders */
+.border-green-100:not(.badge-low):not(.risk-indicator), .border-green-200:not(.badge-low):not(.risk-indicator) {
+  border-color: #E8A17E !important;
+}
+.border-green-300:not(.badge-low):not(.risk-indicator), .border-green-400:not(.badge-low):not(.risk-indicator), .border-green-500:not(.badge-low):not(.risk-indicator), .border-green-600:not(.badge-low):not(.risk-indicator) {
+  border-color: #C65A28 !important;
+}
+
+/* Rings */
+.focus\:ring-green-500:focus:not(.badge-low) {
+  --tw-ring-color: #C65A28 !important;
+}
+
+/* Gradients */
+.from-green-400:not(.badge-low) {
+  --tw-gradient-from: #C65A28 var(--tw-gradient-from-position) !important;
+}
+.to-green-400:not(.badge-low) {
+  --tw-gradient-to: #E8A17E var(--tw-gradient-to-position) !important;
 }

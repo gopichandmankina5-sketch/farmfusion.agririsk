@@ -137,12 +137,12 @@ export default function DecisionSimulator() {
   }
 
   const getChangeIcon = (change) => {
-    if (change < -2) return <TrendingDown className="w-5 h-5 text-green-500" />
+    if (change < -2) return <TrendingDown className="w-5 h-5 text-agri-500" />
     if (change > 2) return <TrendingUp className="w-5 h-5 text-red-500" />
     return <Minus className="w-5 h-5 text-gray-400" />
   }
   const getChangeColor = (change) => {
-    if (change < -2) return "text-green-600 bg-green-50"
+    if (change < -2) return "text-agri-600 bg-agri-50"
     if (change > 2) return "text-red-600 bg-red-50"
     return "text-gray-600 bg-gray-50"
   }
@@ -154,13 +154,13 @@ export default function DecisionSimulator() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-2xl font-bold text-gray-900">{t("decision_simulator")}</h1>
-            <span className="px-2 py-0.5 rounded text-xs font-bold bg-gradient-to-r from-agri-600 to-green-400 text-white shadow-sm">{t("ai_powered")}</span>
+            <span className="px-2 py-0.5 rounded text-xs font-bold bg-gradient-to-r from-agri-600 to-agri-400 text-white shadow-sm">{t("ai_powered")}</span>
           </div>
           <p className="text-sm text-gray-500">{t("feature_p_desc")}</p>
         </div>
         <div className="flex gap-3">
           <button onClick={handleReset} className="btn-ghost flex items-center gap-2">
-            <RefreshCw className="w-4 h-4" /> Reset Scenario
+            <RefreshCw className="w-4 h-4" /> {t("reset_scenario")}
           </button>
           <button onClick={runSimulation} disabled={loading} className="btn-primary flex items-center gap-2 shadow-lg hover:shadow-xl transition-all">
             {loading ? <Loading className="w-4 h-4" /> : <Play className="w-4 h-4" />}
@@ -272,14 +272,14 @@ export default function DecisionSimulator() {
                     </div>
                     <div className={`mt-3 px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1 ${getChangeColor(data.comparison.overall.change)}`}>
                       {getChangeIcon(data.comparison.overall.change)}
-                      {data.comparison.overall.change > 0 ? '+' : ''}{data.comparison.overall.change.toFixed(1)} Points
+                      {data.comparison.overall.change > 0 ? '+' : ''}{data.comparison.overall.change.toFixed(1)} {t("points") || "Points"}
                     </div>
                   </div>
                 </div>
 
                 <div className="card p-5 flex flex-col items-center justify-center text-center ring-2 ring-agri-100 bg-surface">
                   <p className="text-sm text-gray-500 font-medium mb-1">{t("simulated_risk")}</p>
-                  <p className={`text-4xl font-bold ${data.comparison.overall.change < -2 ? 'text-green-600' : data.comparison.overall.change > 2 ? 'text-red-600' : 'text-gray-800'}`}>
+                  <p className={`text-4xl font-bold ${data.comparison.overall.change < -2 ? 'text-agri-600' : data.comparison.overall.change > 2 ? 'text-red-600' : 'text-gray-800'}`}>
                     {data.comparison.overall.scenario.toFixed(1)}
                   </p>
                   <p className="text-xs text-gray-400 mt-2">{t("model_prediction")}</p>
@@ -295,11 +295,19 @@ export default function DecisionSimulator() {
                   🧠 {t("agririsk_insight")}
                 </h3>
                 <div className="space-y-2 relative z-10">
-                  {data.insights.map((insight, i) => (
-                    <p key={i} className="text-agri-100 text-sm leading-relaxed">{insight}</p>
-                  ))}
+                  {data.insights.map((insight, i) => {
+                    let translatedInsight = insight;
+                    if (insight === "Your simulated scenario results in minimal overall risk change.") {
+                      translatedInsight = t("simulated_risk_minimal_change");
+                    } else if (insight === "The selected variables have negligible impact on the model prediction.") {
+                      translatedInsight = t("selected_variables_negligible_impact");
+                    }
+                    return (
+                      <p key={i} className="text-agri-100 text-sm leading-relaxed">{translatedInsight}</p>
+                    )
+                  })}
                   <p className="text-xs text-agri-300/60 mt-4 italic">
-                    * Model-based recommendation. Predictions evaluate estimated risk and are not guaranteed real-world outcomes.
+                    {t("model_disclaimer")}
                   </p>
                 </div>
               </div>
@@ -324,7 +332,7 @@ export default function DecisionSimulator() {
                           {/* We show current as gray, and if scenario is lower, we show the reduction. If higher, we show addition */}
                           <div className="h-full bg-gray-300" style={{ width: `${Math.min(comp.current, comp.scenario)}%` }} />
                           {comp.change < 0 && (
-                            <div className="h-full bg-green-400" style={{ width: `${Math.abs(comp.change)}%` }} />
+                            <div className="h-full bg-agri-400" style={{ width: `${Math.abs(comp.change)}%` }} />
                           )}
                           {comp.change > 0 && (
                             <div className="h-full bg-red-400" style={{ width: `${comp.change}%` }} />
@@ -355,7 +363,7 @@ export default function DecisionSimulator() {
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-bold text-gray-700">{h.before.toFixed(1)} → {h.after.toFixed(1)}</p>
-                      <p className={`text-xs font-semibold ${h.change < 0 ? 'text-green-600' : h.change > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+                      <p className={`text-xs font-semibold ${h.change < 0 ? 'text-agri-600' : h.change > 0 ? 'text-red-600' : 'text-gray-400'}`}>
                         {h.change > 0 ? '+' : ''}{h.change.toFixed(1)}
                       </p>
                     </div>

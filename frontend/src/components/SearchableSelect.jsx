@@ -96,12 +96,12 @@ export default function SearchableSelect({
                 <button
                   key={(opt.id || opt) + i}
                   type="button"
-                  className={`w-full text-left px-3 py-2.5 text-sm hover:bg-green-50 focus:bg-green-50 focus:outline-none transition-colors flex items-center justify-between
-                    ${value === opt.id || value === opt ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-700'}`}
+                  className={`w-full text-left px-3 py-2.5 text-sm hover:bg-agri-50 focus:bg-agri-50 focus:outline-none transition-colors flex items-center justify-between
+                    ${value === opt.id || value === opt ? 'bg-agri-50 text-agri-700 font-medium' : 'text-gray-700'}`}
                   onClick={() => handleSelect(opt)}
                 >
                   {getLocalizedName(opt, language)}
-                  {(value === opt.id || value === opt) && <Check className="w-4 h-4 text-green-600" />}
+                  {(value === opt.id || value === opt) && <Check className="w-4 h-4 text-agri-600" />}
                 </button>
               ))
             )}

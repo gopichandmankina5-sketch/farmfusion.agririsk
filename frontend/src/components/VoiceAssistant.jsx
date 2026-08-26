@@ -618,7 +618,7 @@ export default function VoiceAssistant() {
             )}
             
             {response && (
-              <div className="w-full bg-green-50 rounded-lg p-3 text-left mb-5 border border-green-100">
+              <div className="w-full bg-agri-50 rounded-lg p-3 text-left mb-5 border border-agri-100">
                 <p className="text-xs text-agri-600 uppercase tracking-wider mb-1 font-semibold">AgriRisk</p>
                 <p className="text-sm text-gray-800">{response}</p>
               </div>
